@@ -1,0 +1,37 @@
+use crate::app::error::AppError;
+use crate::modules::tags::infrastructure::web::dtos::ErrorResponse;
+use axum::{
+    Json,
+    http::{HeaderMap, StatusCode},
+    response::IntoResponse,
+};
+
+pub fn map_app_error(error: AppError) -> axum::response::Response {
+    let (status, msg) = match error {
+        AppError::TagNotFound => (StatusCode::NOT_FOUND, "Tag not found".to_string()),
+        AppError::ProductNotFound => (StatusCode::NOT_FOUND, "Product not found".to_string()),
+        AppError::TagAlreadyExists => (StatusCode::CONFLICT, "Tag already exists".to_string()),
+        AppError::InvalidKeyVersion => (StatusCode::BAD_REQUEST, "Invalid key version".to_string()),
+        AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
+        AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()),
+        AppError::Internal(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Internal server error".to_string(),
+        ),
+    };
+
+    (status, Json(ErrorResponse { error: msg })).into_response()
+}
+
+pub fn require_admin(headers: &HeaderMap, expected_api_key: &str) -> Result<(), AppError> {
+    let provided_api_key = headers
+        .get("x-admin-key")
+        .and_then(|value| value.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    if provided_api_key == expected_api_key {
+        Ok(())
+    } else {
+        Err(AppError::Unauthorized)
+    }
+}
