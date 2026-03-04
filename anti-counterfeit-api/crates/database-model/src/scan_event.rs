@@ -12,17 +12,21 @@ pub struct Model {
 
     pub token_id: Option<Uuid>,
 
+    pub tag_uid: String,
+
     pub product_public_id: Option<String>,
 
     pub received_counter: Option<i64>,
 
-    pub result: String,
+    pub verdict: String,
+
+    pub metadata: Option<String>,
 
     pub ip: Option<String>,
 
     pub user_agent: Option<String>,
 
-    pub scanned_at: DateTimeWithTimeZone,
+    pub created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

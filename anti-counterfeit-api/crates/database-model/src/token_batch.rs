@@ -3,38 +3,37 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "tags")]
+#[sea_orm(table_name = "token_batches")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
 
-    #[sea_orm(unique)]
-    pub tag_uid: String,
+    pub tag_id: Option<Uuid>,
 
-    pub mode: String,
+    pub product_public_id: String,
 
     pub status: String,
 
-    pub key_version: i32,
-
-    pub last_counter: Option<i64>,
+    pub expires_at: DateTimeWithTimeZone,
 
     pub created_at: DateTimeWithTimeZone,
 
-    pub updated_at: DateTimeWithTimeZone,
+    pub revoked_at: Option<DateTimeWithTimeZone>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
-    Item,
-    ScanEvents,
+    Tag,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::Item => Entity::has_one(super::item::Entity).into(),
-            Self::ScanEvents => Entity::has_many(super::scan_event::Entity).into(),
+            Self::Tag => Entity::belongs_to(super::tag::Entity)
+                .from(Column::TagId)
+                .to(super::tag::Column::Id)
+                .on_delete(ForeignKeyAction::SetNull)
+                .into(),
         }
     }
 }

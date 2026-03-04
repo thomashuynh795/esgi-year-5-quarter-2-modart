@@ -5,6 +5,7 @@ use uuid::Uuid;
 pub struct Tag {
     pub id: Uuid,
     pub tag_uid: String,
+    pub mode: TagMode,
     pub status: TagStatus,
     pub key_version: i32,
     pub last_counter: Option<i64>,
@@ -13,25 +14,62 @@ pub struct Tag {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TagMode {
+    DynamicCmac,
+    OneTimeTokens,
+}
+
+impl TagMode {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TagMode::DynamicCmac => "dynamic_cmac",
+            TagMode::OneTimeTokens => "one_time_tokens",
+        }
+    }
+}
+
+impl std::fmt::Display for TagMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl TryFrom<&str> for TagMode {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "dynamic_cmac" => Ok(Self::DynamicCmac),
+            "one_time_tokens" => Ok(Self::OneTimeTokens),
+            _ => Err(format!("Unsupported tag mode: {value}")),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TagStatus {
-    Provisioned,
     Active,
     Revoked,
 }
 
 impl Default for TagStatus {
     fn default() -> Self {
-        Self::Provisioned
+        Self::Active
     }
 }
 
-impl ToString for TagStatus {
-    fn to_string(&self) -> String {
+impl TagStatus {
+    pub fn as_str(&self) -> &'static str {
         match self {
-            TagStatus::Provisioned => "PROVISIONED".to_string(),
-            TagStatus::Active => "ACTIVE".to_string(),
-            TagStatus::Revoked => "REVOKED".to_string(),
+            TagStatus::Active => "ACTIVE",
+            TagStatus::Revoked => "REVOKED",
         }
+    }
+}
+
+impl std::fmt::Display for TagStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 
@@ -51,9 +89,11 @@ pub struct ScanEvent {
     pub id: Uuid,
     pub tag_id: Option<Uuid>,
     pub token_id: Option<Uuid>,
+    pub tag_uid: String,
     pub product_public_id: Option<String>,
     pub received_counter: Option<i64>,
-    pub result: String,
+    pub verdict: String,
+    pub metadata: Option<String>,
     pub ip: Option<String>,
     pub user_agent: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -68,14 +108,29 @@ pub enum ScanVerdict {
     TagNotFound,
 }
 
-impl ToString for ScanVerdict {
-    fn to_string(&self) -> String {
+impl ScanVerdict {
+    pub fn as_str(&self) -> &'static str {
         match self {
-            ScanVerdict::Valid => "VALID".to_string(),
-            ScanVerdict::InvalidSignature => "INVALID_SIGNATURE".to_string(),
-            ScanVerdict::ReplayDetected => "REPLAY_DETECTED".to_string(),
-            ScanVerdict::TagRevoked => "TAG_REVOKED".to_string(),
-            ScanVerdict::TagNotFound => "TAG_NOT_FOUND".to_string(),
+            ScanVerdict::Valid => "VALID",
+            ScanVerdict::InvalidSignature => "INVALID_SIGNATURE",
+            ScanVerdict::ReplayDetected => "REPLAY_DETECTED",
+            ScanVerdict::TagRevoked => "TAG_REVOKED",
+            ScanVerdict::TagNotFound => "TAG_NOT_FOUND",
         }
     }
+}
+
+impl std::fmt::Display for ScanVerdict {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AuditEvent {
+    pub id: Uuid,
+    pub tag_id: Option<Uuid>,
+    pub event_type: String,
+    pub metadata: Option<String>,
+    pub created_at: DateTime<Utc>,
 }

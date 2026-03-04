@@ -4,8 +4,11 @@ pub struct Config {
     pub address: String,
     pub database_url: String,
     pub api_domain: String,
-    pub scan_token_secret: String,
-    pub admin_api_key: String,
+    pub token_secret: String,
+    pub admin_key: String,
+    pub tag_signing_master: String,
+    pub default_scan_token_batch_size: u32,
+    pub default_scan_token_ttl_seconds: i64,
 }
 
 impl Config {
@@ -14,18 +17,36 @@ impl Config {
         let database_url =
             std::env::var("DATABASE_URL").context("DATABASE_URL is required in the root .env")?;
         let api_domain = std::env::var("API_DOMAIN").unwrap_or_else(|_| "localhost:3000".into());
-        let scan_token_secret = std::env::var("HMAC_SECRET")
+        let token_secret = std::env::var("TOKEN_SECRET")
+            .or_else(|_| std::env::var("HMAC_SECRET"))
             .or_else(|_| std::env::var("SCAN_TOKEN_SECRET"))
-            .context("HMAC_SECRET or SCAN_TOKEN_SECRET is required in the root .env")?;
-        let admin_api_key =
-            std::env::var("ADMIN_API_KEY").context("ADMIN_API_KEY is required in the root .env")?;
+            .context(
+                "TOKEN_SECRET or legacy SCAN_TOKEN_SECRET/HMAC_SECRET is required in the root .env",
+            )?;
+        let admin_key = std::env::var("ADMIN_KEY")
+            .or_else(|_| std::env::var("ADMIN_API_KEY"))
+            .context("ADMIN_KEY is required in the root .env")?;
+        let tag_signing_master = std::env::var("TAG_SIGNING_MASTER")
+            .or_else(|_| std::env::var("MASTER_KEY_HEX"))
+            .context("TAG_SIGNING_MASTER is required in the root .env")?;
+        let default_scan_token_batch_size = std::env::var("DEFAULT_SCAN_TOKEN_BATCH_SIZE")
+            .ok()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(3);
+        let default_scan_token_ttl_seconds = std::env::var("DEFAULT_SCAN_TOKEN_TTL_SECONDS")
+            .ok()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(86_400);
 
         Ok(Self {
             address,
             database_url,
             api_domain,
-            scan_token_secret,
-            admin_api_key,
+            token_secret,
+            admin_key,
+            tag_signing_master,
+            default_scan_token_batch_size,
+            default_scan_token_ttl_seconds,
         })
     }
 

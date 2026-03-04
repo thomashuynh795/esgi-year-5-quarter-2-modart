@@ -9,8 +9,17 @@ use axum::{
 pub fn map_app_error(error: AppError) -> axum::response::Response {
     let (status, msg) = match error {
         AppError::TagNotFound => (StatusCode::NOT_FOUND, "Tag not found".to_string()),
+        AppError::ScanTokenNotFound => (StatusCode::NOT_FOUND, "Scan token not found".to_string()),
         AppError::ProductNotFound => (StatusCode::NOT_FOUND, "Product not found".to_string()),
         AppError::TagAlreadyExists => (StatusCode::CONFLICT, "Tag already exists".to_string()),
+        AppError::ReplayDetected => (StatusCode::CONFLICT, "Replay detected".to_string()),
+        AppError::TagRevoked => (StatusCode::GONE, "Tag revoked".to_string()),
+        AppError::ScanTokenRevoked => (StatusCode::FORBIDDEN, "Scan token revoked".to_string()),
+        AppError::ScanTokenExpired => (StatusCode::GONE, "Scan token expired".to_string()),
+        AppError::InvalidSignature => (StatusCode::UNAUTHORIZED, "Invalid signature".to_string()),
+        AppError::UnsupportedTagMode => {
+            (StatusCode::BAD_REQUEST, "Unsupported tag mode".to_string())
+        }
         AppError::InvalidKeyVersion => (StatusCode::BAD_REQUEST, "Invalid key version".to_string()),
         AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
         AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()),

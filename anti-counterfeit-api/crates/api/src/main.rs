@@ -4,7 +4,8 @@ use modules::scan_tokens::infrastructure::crypto::hmac_scan_token::HmacScanToken
 use modules::scan_tokens::infrastructure::persistence::sea_orm_repo::SeaOrmScanTokenRepository;
 use modules::tags::infrastructure::crypto::aes_cmac::AesCmacService;
 use modules::tags::infrastructure::persistence::sea_orm_repo::{
-    SeaOrmItemRepository, SeaOrmScanEventRepository, SeaOrmTagRepository,
+    SeaOrmAuditEventRepository, SeaOrmItemRepository, SeaOrmScanEventRepository,
+    SeaOrmTagRepository,
 };
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -40,18 +41,25 @@ async fn main() -> Result<()> {
     let scan_repo = Arc::new(SeaOrmScanEventRepository::new(
         shared_database_connexion.clone(),
     ));
+    let audit_repo = Arc::new(SeaOrmAuditEventRepository::new(
+        shared_database_connexion.clone(),
+    ));
     let scan_token_repo = Arc::new(SeaOrmScanTokenRepository::new(
         shared_database_connexion.clone(),
     ));
 
-    let crypto_service = Arc::new(AesCmacService::new()?);
-    let scan_token_service = Arc::new(HmacScanTokenService::new(&config.scan_token_secret));
+    let crypto_service = Arc::new(AesCmacService::new(&config.tag_signing_master)?);
+    let scan_token_service = Arc::new(HmacScanTokenService::new(&config.token_secret));
 
-    let provision_usecase = Arc::new(
-        modules::tags::application::provision::ProvisionTagUseCase::new(
+    let enroll_usecase = Arc::new(
+        modules::tags::application::provision::EnrollTagUseCase::new(
             tag_repo.clone(),
             item_repo.clone(),
-            crypto_service.clone(),
+            audit_repo.clone(),
+            scan_token_repo.clone(),
+            scan_token_service.clone(),
+            config.default_scan_token_batch_size,
+            config.default_scan_token_ttl_seconds,
         ),
     );
 
@@ -63,10 +71,29 @@ async fn main() -> Result<()> {
 
     let revoke_usecase = Arc::new(modules::tags::application::admin::RevokeTagUseCase::new(
         tag_repo.clone(),
+        audit_repo.clone(),
     ));
     let rotate_usecase = Arc::new(modules::tags::application::admin::RotateKeyUseCase::new(
         tag_repo.clone(),
+        audit_repo.clone(),
     ));
+    let reconfigure_usecase = Arc::new(
+        modules::tags::application::admin::ReconfigureTagUseCase::new(
+            tag_repo.clone(),
+            item_repo.clone(),
+            audit_repo.clone(),
+            enroll_usecase.clone(),
+            scan_token_repo.clone(),
+        ),
+    );
+    let next_messages_usecase =
+        Arc::new(modules::tags::application::admin::NextMessagesUseCase::new(
+            tag_repo.clone(),
+            crypto_service.clone(),
+        ));
+    let revoke_scan_token_usecase = Arc::new(
+        modules::tags::application::admin::RevokeScanTokenUseCase::new(scan_token_repo.clone()),
+    );
     let generate_scan_tokens_usecase = Arc::new(
         modules::scan_tokens::application::scan_tokens::GenerateScanTokensUseCase::new(
             item_repo.clone(),
@@ -84,11 +111,14 @@ async fn main() -> Result<()> {
 
     let state = Arc::new(app::http::AppState {
         api_base_url: config.scan_base_url(),
-        admin_api_key: config.admin_api_key.clone(),
-        provision_usecase,
+        admin_key: config.admin_key.clone(),
+        enroll_usecase,
         verify_usecase,
         revoke_usecase,
         rotate_usecase,
+        reconfigure_usecase,
+        next_messages_usecase,
+        revoke_scan_token_usecase,
         generate_scan_tokens_usecase,
         consume_scan_token_usecase,
     });

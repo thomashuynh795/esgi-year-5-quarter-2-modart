@@ -22,40 +22,55 @@ pub async fn generate_scan_tokens(
     Path(product_public_id): Path<String>,
     Json(payload): Json<GenerateScanTokensRequest>,
 ) -> impl IntoResponse {
-    if let Err(error) = require_admin(&headers, &state.admin_api_key) {
+    if let Err(error) = require_admin(&headers, &state.admin_key) {
         return map_app_error(error);
     }
 
-    let request = GenerateTokensCommand {
-        product_public_id: product_public_id.clone(),
-        count: payload.count,
-        ttl_seconds: payload.ttl_seconds,
-    };
-
-    match state.generate_scan_tokens_usecase.execute(request).await {
+    match state
+        .generate_scan_tokens_usecase
+        .execute(GenerateTokensCommand {
+            product_public_id: product_public_id.clone(),
+            count: payload.count,
+            ttl_seconds: payload.ttl_seconds,
+        })
+        .await
+    {
         Ok(response) => (
             StatusCode::CREATED,
             Json(GenerateScanTokensResponse {
                 product_public_id: response.product_public_id,
+                batch_id: response.batch_id,
                 tokens: response
                     .tokens
                     .into_iter()
-                    .map(|token| {
-                        let public_token = token.token;
-                        GeneratedScanTokenDto {
-                            token_id: token.token_id,
-                            token: public_token.clone(),
-                            url: format!(
-                                "{}/v1/scan?pid={}&t={}",
-                                state.api_base_url, product_public_id, public_token
-                            ),
-                            expires_at: token.expires_at,
-                        }
+                    .map(|token| GeneratedScanTokenDto {
+                        token_id: token.token_id,
+                        url: format!(
+                            "{}/v1/scan?pid={}&t={}",
+                            state.api_base_url, product_public_id, token.token
+                        ),
+                        token: token.token,
+                        expires_at: token.expires_at,
                     })
                     .collect(),
             }),
         )
             .into_response(),
+        Err(error) => map_app_error(error),
+    }
+}
+
+pub async fn revoke_scan_token(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Path(token_id): Path<uuid::Uuid>,
+) -> impl IntoResponse {
+    if let Err(error) = require_admin(&headers, &state.admin_key) {
+        return map_app_error(error);
+    }
+
+    match state.revoke_scan_token_usecase.execute(token_id).await {
+        Ok(()) => (StatusCode::OK, "Scan token revoked").into_response(),
         Err(error) => map_app_error(error),
     }
 }
@@ -96,7 +111,7 @@ fn status_code_for_scan_result(result: &StaticScanResult) -> StatusCode {
     match result {
         StaticScanResult::Ok => StatusCode::OK,
         StaticScanResult::Replay => StatusCode::CONFLICT,
-        StaticScanResult::Invalid => StatusCode::BAD_REQUEST,
+        StaticScanResult::Invalid => StatusCode::UNAUTHORIZED,
         StaticScanResult::Expired => StatusCode::GONE,
         StaticScanResult::Revoked => StatusCode::FORBIDDEN,
         StaticScanResult::NotFound => StatusCode::NOT_FOUND,

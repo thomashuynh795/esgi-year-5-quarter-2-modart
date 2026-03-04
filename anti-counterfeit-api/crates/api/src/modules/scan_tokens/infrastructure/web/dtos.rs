@@ -11,6 +11,7 @@ pub struct GenerateScanTokensRequest {
 #[derive(Serialize)]
 pub struct GenerateScanTokensResponse {
     pub product_public_id: String,
+    pub batch_id: Uuid,
     pub tokens: Vec<GeneratedScanTokenDto>,
 }
 

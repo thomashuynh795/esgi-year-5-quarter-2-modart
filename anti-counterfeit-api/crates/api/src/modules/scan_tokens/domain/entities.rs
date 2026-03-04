@@ -4,6 +4,8 @@ use uuid::Uuid;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ScanToken {
     pub token_id: Uuid,
+    pub batch_id: Option<Uuid>,
+    pub tag_id: Option<Uuid>,
     pub product_public_id: String,
     pub expires_at: DateTime<Utc>,
     pub status: ScanTokenStatus,
@@ -11,7 +13,8 @@ pub struct ScanToken {
     pub used_at: Option<DateTime<Utc>>,
     pub used_ip: Option<String>,
     pub used_user_agent: Option<String>,
-    pub token_hash: Option<Vec<u8>>,
+    pub revoked_at: Option<DateTime<Utc>>,
+    pub token_hash: Vec<u8>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -21,13 +24,51 @@ pub enum ScanTokenStatus {
     Revoked,
 }
 
-impl ToString for ScanTokenStatus {
-    fn to_string(&self) -> String {
+impl ScanTokenStatus {
+    pub fn as_str(&self) -> &'static str {
         match self {
-            ScanTokenStatus::Unused => "UNUSED".to_string(),
-            ScanTokenStatus::Used => "USED".to_string(),
-            ScanTokenStatus::Revoked => "REVOKED".to_string(),
+            ScanTokenStatus::Unused => "UNUSED",
+            ScanTokenStatus::Used => "USED",
+            ScanTokenStatus::Revoked => "REVOKED",
         }
+    }
+}
+
+impl std::fmt::Display for ScanTokenStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TokenBatch {
+    pub id: Uuid,
+    pub tag_id: Option<Uuid>,
+    pub product_public_id: String,
+    pub status: TokenBatchStatus,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub revoked_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TokenBatchStatus {
+    Active,
+    Revoked,
+}
+
+impl TokenBatchStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TokenBatchStatus::Active => "ACTIVE",
+            TokenBatchStatus::Revoked => "REVOKED",
+        }
+    }
+}
+
+impl std::fmt::Display for TokenBatchStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 
@@ -41,15 +82,21 @@ pub enum StaticScanResult {
     NotFound,
 }
 
-impl ToString for StaticScanResult {
-    fn to_string(&self) -> String {
+impl StaticScanResult {
+    pub fn as_str(&self) -> &'static str {
         match self {
-            StaticScanResult::Ok => "OK".to_string(),
-            StaticScanResult::Replay => "REPLAY".to_string(),
-            StaticScanResult::Invalid => "INVALID".to_string(),
-            StaticScanResult::Expired => "EXPIRED".to_string(),
-            StaticScanResult::Revoked => "REVOKED".to_string(),
-            StaticScanResult::NotFound => "NOT_FOUND".to_string(),
+            StaticScanResult::Ok => "OK",
+            StaticScanResult::Replay => "REPLAY",
+            StaticScanResult::Invalid => "INVALID",
+            StaticScanResult::Expired => "EXPIRED",
+            StaticScanResult::Revoked => "REVOKED",
+            StaticScanResult::NotFound => "NOT_FOUND",
         }
+    }
+}
+
+impl std::fmt::Display for StaticScanResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
     }
 }

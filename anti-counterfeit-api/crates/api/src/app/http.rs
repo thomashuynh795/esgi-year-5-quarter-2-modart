@@ -2,8 +2,11 @@ use crate::modules::scan_tokens::application::scan_tokens::{
     ConsumeScanTokenUseCase, GenerateScanTokensUseCase,
 };
 use crate::modules::scan_tokens::infrastructure::web::handlers as scan_token_handlers;
-use crate::modules::tags::application::admin::{RevokeTagUseCase, RotateKeyUseCase};
-use crate::modules::tags::application::provision::ProvisionTagUseCase;
+use crate::modules::tags::application::admin::{
+    NextMessagesUseCase, ReconfigureTagUseCase, RevokeScanTokenUseCase, RevokeTagUseCase,
+    RotateKeyUseCase,
+};
+use crate::modules::tags::application::provision::EnrollTagUseCase;
 use crate::modules::tags::application::verify::VerifyTagUseCase;
 use crate::modules::tags::infrastructure::web::handlers as tag_handlers;
 use axum::{
@@ -15,11 +18,14 @@ use tower_http::trace::TraceLayer;
 
 pub struct AppState {
     pub api_base_url: String,
-    pub admin_api_key: String,
-    pub provision_usecase: Arc<ProvisionTagUseCase>,
+    pub admin_key: String,
+    pub enroll_usecase: Arc<EnrollTagUseCase>,
     pub verify_usecase: Arc<VerifyTagUseCase>,
     pub revoke_usecase: Arc<RevokeTagUseCase>,
     pub rotate_usecase: Arc<RotateKeyUseCase>,
+    pub reconfigure_usecase: Arc<ReconfigureTagUseCase>,
+    pub next_messages_usecase: Arc<NextMessagesUseCase>,
+    pub revoke_scan_token_usecase: Arc<RevokeScanTokenUseCase>,
     pub generate_scan_tokens_usecase: Arc<GenerateScanTokensUseCase>,
     pub consume_scan_token_usecase: Arc<ConsumeScanTokenUseCase>,
 }
@@ -28,6 +34,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/health", get(health_check))
         .route("/provision", post(tag_handlers::provision_tag))
+        .route("/admin/tags/enroll", post(tag_handlers::enroll_tag))
         .route("/verify", post(tag_handlers::verify_tag))
         .route(
             "/admin/tags/{tag_id}/revoke",
@@ -36,6 +43,18 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route(
             "/admin/tags/{tag_id}/rotate-key",
             post(tag_handlers::rotate_key),
+        )
+        .route(
+            "/admin/tags/{tag_id}/reconfigure",
+            post(tag_handlers::reconfigure_tag),
+        )
+        .route(
+            "/admin/tags/{tag_id}/next-messages",
+            post(tag_handlers::next_messages),
+        )
+        .route(
+            "/admin/scan-tokens/{token_id}/revoke",
+            post(scan_token_handlers::revoke_scan_token),
         )
         .route("/v1/scan", get(scan_token_handlers::scan_token))
         .route(

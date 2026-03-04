@@ -4,7 +4,7 @@ use sea_orm::{ConnectionTrait, Database, DbConn, Schema};
 use std::env;
 use std::path::PathBuf;
 
-use database_model::{item, scan_event, scan_token, tag};
+use database_model::{audit_event, item, scan_event, scan_token, tag, token_batch};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,8 +23,10 @@ async fn main() -> anyhow::Result<()> {
 
     let db: DbConn = Database::connect(&database_url).await?;
 
+    drop_table_if_exists(&db, "audit_events").await?;
     drop_table_if_exists(&db, "scan_events").await?;
     drop_table_if_exists(&db, "scan_tokens").await?;
+    drop_table_if_exists(&db, "token_batches").await?;
     drop_table_if_exists(&db, "items").await?;
     drop_table_if_exists(&db, "tags").await?;
 
@@ -32,12 +34,18 @@ async fn main() -> anyhow::Result<()> {
 
     create_table(&db, schema.create_table_from_entity(tag::Entity)).await?;
     create_table(&db, schema.create_table_from_entity(item::Entity)).await?;
+    create_table(&db, schema.create_table_from_entity(token_batch::Entity)).await?;
     create_table(&db, schema.create_table_from_entity(scan_token::Entity)).await?;
     create_table(&db, schema.create_table_from_entity(scan_event::Entity)).await?;
+    create_table(&db, schema.create_table_from_entity(audit_event::Entity)).await?;
 
     add_fk_items_tag(&db).await?;
+    add_fk_token_batches_tag(&db).await?;
+    add_fk_scan_tokens_batch(&db).await?;
+    add_fk_scan_tokens_tag(&db).await?;
     add_fk_scan_events_tag(&db).await?;
     add_fk_scan_events_token(&db).await?;
+    add_fk_audit_events_tag(&db).await?;
     add_indexes(&db).await?;
 
     println!("The database has been reset.");
@@ -87,6 +95,42 @@ async fn add_fk_scan_events_tag(db: &DbConn) -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn add_fk_token_batches_tag(db: &DbConn) -> anyhow::Result<()> {
+    let stmt = ForeignKey::create()
+        .name("fk_token_batches_tag")
+        .from(Alias::new("token_batches"), Alias::new("tag_id"))
+        .to(Alias::new("tags"), Alias::new("id"))
+        .on_delete(ForeignKeyAction::SetNull)
+        .to_owned();
+
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+    Ok(())
+}
+
+async fn add_fk_scan_tokens_batch(db: &DbConn) -> anyhow::Result<()> {
+    let stmt = ForeignKey::create()
+        .name("fk_scan_tokens_batch")
+        .from(Alias::new("scan_tokens"), Alias::new("batch_id"))
+        .to(Alias::new("token_batches"), Alias::new("id"))
+        .on_delete(ForeignKeyAction::SetNull)
+        .to_owned();
+
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+    Ok(())
+}
+
+async fn add_fk_scan_tokens_tag(db: &DbConn) -> anyhow::Result<()> {
+    let stmt = ForeignKey::create()
+        .name("fk_scan_tokens_tag")
+        .from(Alias::new("scan_tokens"), Alias::new("tag_id"))
+        .to(Alias::new("tags"), Alias::new("id"))
+        .on_delete(ForeignKeyAction::SetNull)
+        .to_owned();
+
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+    Ok(())
+}
+
 async fn add_fk_scan_events_token(db: &DbConn) -> anyhow::Result<()> {
     let stmt = ForeignKey::create()
         .name("fk_scan_events_token")
@@ -99,8 +143,26 @@ async fn add_fk_scan_events_token(db: &DbConn) -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn add_fk_audit_events_tag(db: &DbConn) -> anyhow::Result<()> {
+    let stmt = ForeignKey::create()
+        .name("fk_audit_events_tag")
+        .from(Alias::new("audit_events"), Alias::new("tag_id"))
+        .to(Alias::new("tags"), Alias::new("id"))
+        .on_delete(ForeignKeyAction::SetNull)
+        .to_owned();
+
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+    Ok(())
+}
+
 async fn add_indexes(db: &DbConn) -> anyhow::Result<()> {
     let index_statements = [
+        Index::create()
+            .name("idx_tags_tag_uid")
+            .table(Alias::new("tags"))
+            .col(Alias::new("tag_uid"))
+            .unique()
+            .to_owned(),
         Index::create()
             .name("idx_scan_tokens_product_status")
             .table(Alias::new("scan_tokens"))
@@ -108,9 +170,37 @@ async fn add_indexes(db: &DbConn) -> anyhow::Result<()> {
             .col(Alias::new("status"))
             .to_owned(),
         Index::create()
+            .name("idx_scan_tokens_token_hash")
+            .table(Alias::new("scan_tokens"))
+            .col(Alias::new("token_hash"))
+            .unique()
+            .to_owned(),
+        Index::create()
+            .name("idx_scan_tokens_pid_hash")
+            .table(Alias::new("scan_tokens"))
+            .col(Alias::new("product_public_id"))
+            .col(Alias::new("token_hash"))
+            .to_owned(),
+        Index::create()
+            .name("idx_scan_tokens_tag_id")
+            .table(Alias::new("scan_tokens"))
+            .col(Alias::new("tag_id"))
+            .to_owned(),
+        Index::create()
+            .name("idx_token_batches_tag_status")
+            .table(Alias::new("token_batches"))
+            .col(Alias::new("tag_id"))
+            .col(Alias::new("status"))
+            .to_owned(),
+        Index::create()
             .name("idx_scan_tokens_expires_at")
             .table(Alias::new("scan_tokens"))
             .col(Alias::new("expires_at"))
+            .to_owned(),
+        Index::create()
+            .name("idx_scan_events_tag_uid")
+            .table(Alias::new("scan_events"))
+            .col(Alias::new("tag_uid"))
             .to_owned(),
         Index::create()
             .name("idx_scan_events_product_public_id")
@@ -121,6 +211,11 @@ async fn add_indexes(db: &DbConn) -> anyhow::Result<()> {
             .name("idx_scan_events_token_id")
             .table(Alias::new("scan_events"))
             .col(Alias::new("token_id"))
+            .to_owned(),
+        Index::create()
+            .name("idx_audit_events_tag_id")
+            .table(Alias::new("audit_events"))
+            .col(Alias::new("tag_id"))
             .to_owned(),
     ];
 
