@@ -8,8 +8,8 @@ version = "0.1.0"
 
 [workspace.dependencies]
 sea-orm-migration = { version = "1.1", features = [
-    "runtime-tokio-rustls",
-    "sqlx-postgres",
+  "runtime-tokio-rustls",
+  "sqlx-postgres",
 ] }
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 axum = { version = "0.8.4", features = [] }
@@ -17,9 +17,9 @@ tokio = { version = "1.47.0", features = ["macros", "rt-multi-thread"] }
 dotenvy = { version = "0.15.7", features = [] }
 jsonwebtoken = { version = "9.3.1", features = [] }
 sea-orm = { version = "1.1.19", features = [
-    "sqlx-postgres",
-    "runtime-tokio-rustls",
-    "macros",
+  "sqlx-postgres",
+  "runtime-tokio-rustls",
+  "macros",
 ] }
 serde = { version = "1.0.219", features = ["derive"] }
 uuid = { version = "1.17.0", features = ["v4"] }
@@ -30,7 +30,8 @@ thiserror = { version = "2.0.16", features = [] }
 aes = { version = "0.8.0", features = [] }
 cmac = { version = "0.7.0", features = [] }
 hex = { version = "0.4.3", features = [] }
-tower-http = { version = "0.6.8", features = ["trace"] }
+tower-http = { version = "0.6.8", features = ["trace", "cors"] }
+http = "1"
 tracing = { version = "0.1.44", features = [] }
 async-trait = { version = "0.1.77", features = [] }
 base64 = { version = "0.22.1", features = [] }

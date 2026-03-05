@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use api::{app, config, db, modules};
+use axum::http::Method;
 use modules::scan_tokens::infrastructure::crypto::hmac_scan_token::HmacScanTokenService;
 use modules::scan_tokens::infrastructure::persistence::sea_orm_repo::SeaOrmScanTokenRepository;
 use modules::tags::infrastructure::crypto::aes_cmac::AesCmacService;
@@ -9,7 +10,23 @@ use modules::tags::infrastructure::persistence::sea_orm_repo::{
 };
 use std::path::PathBuf;
 use std::sync::Arc;
+use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+fn build_cors_layer_for_demo() -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers(Any)
+        .allow_credentials(false)
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -123,7 +140,8 @@ async fn main() -> Result<()> {
         consume_scan_token_usecase,
     });
 
-    let app = app::http::create_router(state);
+    let cors = build_cors_layer_for_demo();
+    let app = app::http::create_router(state).layer(cors);
 
     let listener = tokio::net::TcpListener::bind(&config.address)
         .await
