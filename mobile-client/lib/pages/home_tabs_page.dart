@@ -14,6 +14,7 @@ import '../services/nfc_scan.dart';
 import '../services/pending_scans.dart';
 import 'cloth_detail_page.dart';
 import '../services/esp32_socket_service.dart';
+import '../services/esp32_movement_service.dart';
 import '../services/token_storage.dart';
 
 class HomeTabsPage extends StatefulWidget {
@@ -49,6 +50,7 @@ class _HomeTabsPageState extends State<HomeTabsPage>
   void initState() {
     super.initState();
     Esp32SocketService.instance.connect('ws://10.213.38.168:81');
+    // Esp32MovementService.instance.connect('ws://10.213.255.72:81');
     WidgetsBinding.instance.addObserver(this);
     _clothesFuture = _service.loadClothes();
 
@@ -122,7 +124,6 @@ class _HomeTabsPageState extends State<HomeTabsPage>
     try {
       final token = await const TokenStorage().read();
       if (token == null || token.isEmpty) {
-        // pas connecté -> on ne consomme pas, on garde les scans en attente
         return;
       }
       if (_nameToId.isEmpty) {
