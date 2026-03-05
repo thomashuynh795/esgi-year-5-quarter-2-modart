@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'pages/auth_gate.dart';
 import 'services/nfc_scan.dart';
 import 'services/pending_scans.dart';
-import 'services/esp32_socket_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

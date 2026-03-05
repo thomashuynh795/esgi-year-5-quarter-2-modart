@@ -74,6 +74,15 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
     });
   }
 
+  void _openSensorsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      builder: (_) => const _SensorsPanel(),
+    );
+  }
+
   Future<List<Cloth>> _fetchAndEnrichLibrary() async {
     final items = await _libraryApi.getLibrary();
 
@@ -237,6 +246,26 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
                   child: Row(
                     children: [
                       const Spacer(),
+                      Builder(
+                        builder: (context) {
+                          final controller = DefaultTabController.of(context);
+                          return AnimatedBuilder(
+                            animation: controller,
+                            builder: (_, __) {
+                              final onMaCollection =
+                                  controller.index == 0; // Ma Collection = 0
+                              if (!onMaCollection)
+                                return const SizedBox.shrink();
+
+                              return IconButton(
+                                tooltip: 'Capteurs',
+                                icon: const Icon(Icons.sensors_outlined),
+                                onPressed: () => _openSensorsSheet(context),
+                              );
+                            },
+                          );
+                        },
+                      ),
                       _AccountMenu(
                         email: _me?.email,
                         loading: _meLoading,
@@ -334,6 +363,87 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SensorsPanel extends StatelessWidget {
+  const _SensorsPanel();
+
+  String _riskTemp(double t) {
+    return (t >= 0 && t <= 80) ? 'Risque faible' : 'Risque très élevé';
+  }
+
+  String _riskHum(double h) {
+    return (h >= 20 && h <= 60) ? 'Risque faible' : 'Risque très élevé';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      child: StreamBuilder<SensorData>(
+        stream: Esp32SocketService.instance.stream,
+        builder: (context, snap) {
+          final data = snap.data;
+
+          final temp = data?.temperature;
+          final hum = data?.humidity;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Capteurs (live)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+
+              _row(
+                label: 'Température',
+                value: temp == null ? '—' : '${temp.toStringAsFixed(0)}°',
+                risk: temp == null ? '—' : _riskTemp(temp),
+              ),
+              const SizedBox(height: 10),
+              _row(
+                label: 'Humidité',
+                value: hum == null ? '—' : '${hum.toStringAsFixed(0)}%',
+                risk: hum == null ? '—' : _riskHum(hum),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _row({
+    required String label,
+    required String value,
+    required String risk,
+  }) {
+    const cellStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.w500);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFEAEAEA)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(flex: 2, child: Text(label, style: cellStyle)),
+          Expanded(
+            child: Text(value, style: cellStyle, textAlign: TextAlign.right),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(risk, style: cellStyle, textAlign: TextAlign.right),
+          ),
+        ],
       ),
     );
   }
