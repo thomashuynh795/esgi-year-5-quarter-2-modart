@@ -23,35 +23,35 @@ export class App {
   protected readonly navSections = [
     {
       label: 'Overview',
-      links: [{ label: 'Dashboard', path: '/dashboard' }],
+      links: [{ label: 'Control Center', path: '/dashboard' }],
     },
     {
-      label: 'Public',
+      label: 'Customer Flows',
       links: [
-        { label: 'Health', path: '/public/health' },
-        { label: 'Verify (CMAC)', path: '/public/verify' },
-        { label: 'Scan (Token)', path: '/public/scan' },
+        { label: 'API Status', path: '/public/health' },
+        { label: 'Authenticate a Tag', path: '/public/verify' },
+        { label: 'Customer Scan Link', path: '/public/scan' },
       ],
     },
     {
-      label: 'Admin',
+      label: '(USE)LESS Ops',
       links: [
-        { label: 'Enroll Tag', path: '/admin/enroll' },
-        { label: 'Next Messages', path: '/admin/next-messages' },
-        { label: 'Revoke Tag', path: '/admin/revoke-tag' },
-        { label: 'Rotate Key', path: '/admin/rotate-key' },
-        { label: 'Reconfigure Tag', path: '/admin/reconfigure-tag' },
-        { label: 'Generate Scan Tokens', path: '/admin/generate-scan-tokens' },
-        { label: 'Revoke Scan Token', path: '/admin/revoke-scan-token' },
+        { label: 'Create Garment + Tag', path: '/admin/enroll' },
+        { label: 'Prepare Tag Proofs', path: '/admin/next-messages' },
+        { label: 'Disable Garment Tag', path: '/admin/revoke-tag' },
+        { label: 'Renew Tag Secret', path: '/admin/rotate-key' },
+        { label: 'Change Auth Mode', path: '/admin/reconfigure-tag' },
+        { label: 'Create Customer Links', path: '/admin/generate-scan-tokens' },
+        { label: 'Disable Customer Link', path: '/admin/revoke-scan-token' },
       ],
     },
     {
-      label: 'Config',
+      label: 'Workspace',
       links: [{ label: 'Settings', path: '/settings' }],
     },
   ] as const;
   protected readonly loadingLabel = computed(() =>
-    this.isLoading() ? 'Request in progress' : 'Idle',
+    this.isLoading() ? 'Request in progress' : 'Ready',
   );
 
   protected closeSidebar(): void {

@@ -16,35 +16,35 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Public Verify (CMAC)</h2>
-        <p class="page-subtitle">Send POST /verify and optionally replay the exact same payload.</p>
+        <h2 class="page-title">Authenticate a Garment Tag</h2>
+        <p class="page-subtitle">Validate a physical NFC tag proof and optionally replay it to test anti-replay behavior.</p>
       </div>
 
       <form class="card grid gap-4 md:grid-cols-3" [formGroup]="form" (ngSubmit)="submit()">
         <div class="md:col-span-3">
-          <label class="field-label" for="tag_uid">Tag UID</label>
+          <label class="field-label" for="tag_uid">Physical NFC tag UID</label>
           <input id="tag_uid" class="field-input" type="text" formControlName="tag_uid" />
         </div>
 
         <div>
-          <label class="field-label" for="counter">Counter</label>
+          <label class="field-label" for="counter">Scan counter</label>
           <input id="counter" class="field-input" type="number" formControlName="counter" />
         </div>
 
         <div class="md:col-span-2">
-          <label class="field-label" for="cmac">CMAC (hex)</label>
+          <label class="field-label" for="cmac">Authenticity proof (CMAC hex)</label>
           <input id="cmac" class="field-input" type="text" formControlName="cmac" />
         </div>
 
         <div class="md:col-span-3 flex flex-wrap gap-3">
-          <button type="submit" class="btn-primary" [disabled]="form.invalid">Verify</button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid">Authenticate</button>
           <button
             type="button"
             class="btn-secondary"
             [disabled]="!lastPayload()"
             (click)="replay()"
           >
-            Replay same request
+            Replay same proof
           </button>
         </div>
       </form>
@@ -52,8 +52,8 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
       @if (result()) {
         <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <div class="card">
-            <p class="text-sm font-semibold text-white">Verify summary</p>
-            <dl class="mt-4 grid gap-3 text-sm text-slate-300">
+            <p class="text-sm font-semibold text-slate-900">Authentication summary</p>
+            <dl class="mt-4 grid gap-3 text-sm text-slate-600">
               <div class="flex items-center justify-between gap-3">
                 <dt>Status</dt>
                 <dd>{{ result()?.status }}</dd>
@@ -69,7 +69,7 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
             </dl>
           </div>
 
-          <app-json-viewer title="Verify response" [value]="result()" />
+          <app-json-viewer title="Authentication response" [value]="result()" />
         </div>
       }
     </section>
@@ -117,7 +117,7 @@ export class PublicVerifyComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Verify completed',
+          title: 'Authentication completed',
           message: `Verdict: ${this.extractVerdict(result)}.`,
         });
       }

@@ -14,48 +14,48 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Enroll Tag</h2>
+        <h2 class="page-title">Create a Garment and Link a Tag</h2>
         <p class="page-subtitle">
-          Test both POST /admin/tags/enroll and the /provision alias with the same payload.
+          Create a new (USE)LESS garment record and attach a physical NFC tag to it.
         </p>
       </div>
 
       <form class="card grid gap-4 md:grid-cols-2" [formGroup]="form">
         <div>
-          <label class="field-label" for="tag_uid">Tag UID</label>
+          <label class="field-label" for="tag_uid">Physical NFC tag UID</label>
           <input id="tag_uid" class="field-input" type="text" formControlName="tag_uid" />
         </div>
         <div>
-          <label class="field-label" for="product_code">Product code</label>
+          <label class="field-label" for="product_code">Garment reference</label>
           <input id="product_code" class="field-input" type="text" formControlName="product_code" />
         </div>
         <div>
-          <label class="field-label" for="size">Size</label>
+          <label class="field-label" for="size">Garment size</label>
           <input id="size" class="field-input" type="text" formControlName="size" />
         </div>
         <div>
-          <label class="field-label" for="color">Color</label>
+          <label class="field-label" for="color">Garment color</label>
           <input id="color" class="field-input" type="text" formControlName="color" />
         </div>
         <div class="md:col-span-2">
-          <label class="field-label" for="mode">Mode</label>
+          <label class="field-label" for="mode">Authentication mode</label>
           <select id="mode" class="field-input" formControlName="mode">
-            <option *ngFor="let option of modes" [value]="option">{{ option }}</option>
+            <option *ngFor="let option of modeOptions" [value]="option.value">{{ option.label }}</option>
           </select>
         </div>
 
         <div class="md:col-span-2 flex flex-wrap gap-3">
           <button type="button" class="btn-primary" [disabled]="form.invalid" (click)="submit('enroll')">
-            Enroll
+            Create garment
           </button>
           <button type="button" class="btn-secondary" [disabled]="form.invalid" (click)="submit('provision')">
-            Provision alias
+            Create via alias route
           </button>
         </div>
       </form>
 
       @if (result()) {
-        <app-json-viewer title="Enroll response" [value]="result()" />
+        <app-json-viewer title="Garment creation response" [value]="result()" />
       }
     </section>
   `,
@@ -66,7 +66,10 @@ export class AdminEnrollComponent {
   private readonly demoState = inject(DemoStateService);
   private readonly notificationService = inject(NotificationService);
 
-  protected readonly modes: TagMode[] = ['dynamic_cmac', 'one_time_tokens'];
+  protected readonly modeOptions: ReadonlyArray<{ value: TagMode; label: string }> = [
+    { value: 'dynamic_cmac', label: 'DYNAMIC CMAC' },
+    { value: 'one_time_tokens', label: 'ONE TIME TOKENS' },
+  ];
   protected readonly form = this.formBuilder.nonNullable.group({
     tag_uid: ['', Validators.required],
     product_code: ['', Validators.required],
@@ -91,8 +94,8 @@ export class AdminEnrollComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: target === 'enroll' ? 'Tag enrolled' : 'Tag provisioned',
-          message: tagId ? `Current tag updated to ${tagId}.` : 'Request succeeded.',
+          title: target === 'enroll' ? 'Garment created' : 'Garment created via alias',
+          message: tagId ? `Current linked tag saved as ${tagId}.` : 'Request succeeded.',
         });
       }
     });

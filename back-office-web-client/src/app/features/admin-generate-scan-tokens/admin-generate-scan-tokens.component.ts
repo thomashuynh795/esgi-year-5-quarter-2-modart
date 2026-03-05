@@ -21,52 +21,52 @@ interface GeneratedScanToken {
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Generate Scan Tokens</h2>
-        <p class="page-subtitle">Call POST /v1/products/:product_code/scan-tokens.</p>
+        <h2 class="page-title">Create Customer Authenticity Links</h2>
+        <p class="page-subtitle">Generate time-limited links that customers can use to confirm a garment is authentic.</p>
       </div>
 
       <form class="card grid gap-4 md:grid-cols-3" [formGroup]="form" (ngSubmit)="submit()">
         <div class="md:col-span-3">
-          <label class="field-label" for="product_code">Product code</label>
+          <label class="field-label" for="product_code">Garment reference</label>
           <input id="product_code" class="field-input" type="text" formControlName="product_code" />
         </div>
         <div>
-          <label class="field-label" for="count">Count</label>
+          <label class="field-label" for="count">Number of links</label>
           <input id="count" class="field-input" type="number" formControlName="count" />
         </div>
         <div>
-          <label class="field-label" for="ttl_seconds">TTL seconds</label>
+          <label class="field-label" for="ttl_seconds">Link validity (seconds)</label>
           <input id="ttl_seconds" class="field-input" type="number" formControlName="ttl_seconds" />
         </div>
         <div class="flex items-end">
-          <button type="submit" class="btn-primary w-full" [disabled]="form.invalid">Generate</button>
+          <button type="submit" class="btn-primary w-full" [disabled]="form.invalid">Create links</button>
         </div>
       </form>
 
       @if (tokens().length > 0) {
         <div class="card">
-          <p class="text-sm font-semibold text-white">Generated scan tokens</p>
+          <p class="text-sm font-semibold text-slate-900">Generated customer links</p>
           <div class="mt-4 overflow-x-auto">
             <table class="min-w-full text-left text-sm">
               <thead class="text-slate-400">
                 <tr>
-                  <th class="px-2 py-2">Token ID</th>
+                  <th class="px-2 py-2">Link ID</th>
                   <th class="px-2 py-2">Token</th>
-                  <th class="px-2 py-2">URL</th>
-                  <th class="px-2 py-2">Expires At</th>
+                  <th class="px-2 py-2">Customer URL</th>
+                  <th class="px-2 py-2">Expires at</th>
                   <th class="px-2 py-2">Action</th>
                 </tr>
               </thead>
               <tbody>
                 @for (token of tokens(); track token.token_id) {
                   <tr class="border-t border-white/5">
-                    <td class="px-2 py-2 font-mono text-xs text-cyan-200">{{ token.token_id }}</td>
-                    <td class="px-2 py-2 font-mono text-xs text-slate-200">{{ token.token }}</td>
+                    <td class="px-2 py-2 font-mono text-xs text-sky-700">{{ token.token_id }}</td>
+                    <td class="px-2 py-2 font-mono text-xs text-slate-800">{{ token.token }}</td>
                     <td class="px-2 py-2 font-mono text-xs text-slate-400">{{ token.url }}</td>
-                    <td class="px-2 py-2 text-slate-300">{{ token.expires_at }}</td>
+                    <td class="px-2 py-2 text-slate-600">{{ token.expires_at }}</td>
                     <td class="px-2 py-2">
                       <button type="button" class="btn-secondary" (click)="useInScan(token)">
-                        Use in Scan
+                        Open in customer scan
                       </button>
                     </td>
                   </tr>
@@ -78,7 +78,7 @@ interface GeneratedScanToken {
       }
 
       @if (result()) {
-        <app-json-viewer title="Generate scan tokens response" [value]="result()" />
+        <app-json-viewer title="Customer link creation response" [value]="result()" />
       }
     </section>
   `,
@@ -117,8 +117,8 @@ export class AdminGenerateScanTokensComponent {
         if (result.ok) {
           this.notificationService.show({
             level: 'success',
-            title: 'Scan tokens generated',
-            message: `${tokens.length} token(s) created.`,
+            title: 'Customer links created',
+            message: `${tokens.length} link(s) created.`,
           });
         }
       });

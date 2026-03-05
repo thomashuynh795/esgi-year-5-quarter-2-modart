@@ -10,7 +10,7 @@ import { HistoryEntry } from '../../core/models/api.models';
     <div class="card">
       <div class="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p class="text-sm font-semibold text-white">{{ title }}</p>
+          <p class="text-sm font-semibold text-slate-900">{{ title }}</p>
           <p class="text-xs text-slate-400">Latest 20 requests kept in local storage.</p>
         </div>
       </div>
@@ -32,9 +32,9 @@ import { HistoryEntry } from '../../core/models/api.models';
             <tbody>
               @for (entry of entries; track entry.id) {
                 <tr class="border-t border-white/5">
-                  <td class="px-2 py-2 text-slate-300">{{ entry.timestamp | date: 'short' }}</td>
-                  <td class="px-2 py-2 text-slate-200">{{ entry.method }}</td>
-                  <td class="px-2 py-2 font-mono text-xs text-cyan-200">{{ entry.path }}</td>
+                  <td class="px-2 py-2 text-slate-600">{{ entry.timestamp | date: 'short' }}</td>
+                  <td class="px-2 py-2 text-slate-800">{{ entry.method }}</td>
+                  <td class="px-2 py-2 font-mono text-xs text-sky-700">{{ entry.path }}</td>
                   <td class="px-2 py-2">
                     <span
                       class="rounded-full px-2 py-1 text-xs"
@@ -46,7 +46,7 @@ import { HistoryEntry } from '../../core/models/api.models';
                       {{ entry.status }}
                     </span>
                   </td>
-                  <td class="px-2 py-2 text-slate-300">{{ entry.latencyMs }} ms</td>
+                  <td class="px-2 py-2 text-slate-600">{{ entry.latencyMs }} ms</td>
                 </tr>
               }
             </tbody>

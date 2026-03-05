@@ -13,14 +13,14 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Health</h2>
-        <p class="page-subtitle">Test GET /health and inspect latency, status and raw body.</p>
+        <h2 class="page-title">API Status</h2>
+        <p class="page-subtitle">Check whether the authenticity platform is reachable and measure response time.</p>
       </div>
 
       <div class="card flex flex-wrap items-center gap-4">
-        <button type="button" class="btn-primary" (click)="ping()">Ping</button>
+        <button type="button" class="btn-primary" (click)="ping()">Check platform</button>
         @if (result()) {
-          <div class="text-sm text-slate-300">
+          <div class="text-sm text-slate-600">
             <p>Status: {{ result()?.status }}</p>
             <p>Latency: {{ result()?.latencyMs }} ms</p>
           </div>
@@ -28,7 +28,7 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
       </div>
 
       @if (result()) {
-        <app-json-viewer title="Health response" [value]="result()" />
+        <app-json-viewer title="Platform status response" [value]="result()" />
       }
     </section>
   `,
@@ -48,7 +48,7 @@ export class PublicHealthComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Health OK',
+          title: 'Platform reachable',
           message: `API responded in ${result.latencyMs} ms.`,
         });
       }

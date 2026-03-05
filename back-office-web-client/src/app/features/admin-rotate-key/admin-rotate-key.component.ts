@@ -14,33 +14,33 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Rotate Key</h2>
-        <p class="page-subtitle">Call POST /admin/tags/:tag_id/rotate-key.</p>
+        <h2 class="page-title">Renew a Tag Secret</h2>
+        <p class="page-subtitle">Generate a fresh secret for a linked garment tag and prepare new proofs after rotation.</p>
       </div>
 
       <form class="card space-y-4" [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label class="field-label" for="tag_id">Tag ID</label>
+          <label class="field-label" for="tag_id">Linked tag ID</label>
           <input id="tag_id" class="field-input" type="text" formControlName="tag_id" />
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="form.invalid">Rotate</button>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid">Renew secret</button>
       </form>
 
       @if (result()) {
         <div class="card flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold text-white">Rotation completed</p>
-            <p class="mt-1 text-sm text-slate-300">
-              New key version: {{ readNewKeyVersion(result()) }}
+            <p class="text-sm font-semibold text-slate-900">Secret renewed</p>
+            <p class="mt-1 text-sm text-slate-600">
+              New secret version: {{ readNewKeyVersion(result()) }}
             </p>
           </div>
           <button type="button" class="btn-secondary" (click)="goToNextMessages()">
-            Generate Next Messages
+            Prepare next proofs
           </button>
         </div>
 
-        <app-json-viewer title="Rotate key response" [value]="result()" />
+        <app-json-viewer title="Secret renewal response" [value]="result()" />
       }
     </section>
   `,
@@ -64,7 +64,7 @@ export class AdminRotateKeyComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Key rotated',
+          title: 'Secret renewed',
           message: `New version: ${this.readNewKeyVersion(result)}.`,
         });
       }

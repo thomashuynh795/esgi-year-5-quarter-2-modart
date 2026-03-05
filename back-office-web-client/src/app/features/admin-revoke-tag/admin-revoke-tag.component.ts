@@ -13,21 +13,21 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Revoke Tag</h2>
-        <p class="page-subtitle">Call POST /admin/tags/:tag_id/revoke.</p>
+        <h2 class="page-title">Disable a Garment Tag</h2>
+        <p class="page-subtitle">Block a linked garment tag so it can no longer authenticate successfully.</p>
       </div>
 
       <form class="card space-y-4" [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label class="field-label" for="tag_id">Tag ID</label>
+          <label class="field-label" for="tag_id">Linked tag ID</label>
           <input id="tag_id" class="field-input" type="text" formControlName="tag_id" />
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="form.invalid">Revoke</button>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid">Disable tag</button>
       </form>
 
       @if (result()) {
-        <app-json-viewer title="Revoke tag response" [value]="result()" />
+        <app-json-viewer title="Tag disable response" [value]="result()" />
       }
     </section>
   `,
@@ -50,8 +50,8 @@ export class AdminRevokeTagComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Tag revoked',
-          message: 'The current tag is now revoked.',
+          title: 'Tag disabled',
+          message: 'The linked garment tag is now blocked.',
         });
       }
     });

@@ -11,9 +11,9 @@ import { NotificationService } from '../../core/services/notification.service';
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Settings</h2>
+        <h2 class="page-title">Workspace Settings</h2>
         <p class="page-subtitle">
-          Update the API base URL and the demo admin key. Changes apply immediately to new requests.
+          Update the API endpoint and the demo admin key used by the (USE)LESS operations console.
         </p>
       </div>
 
@@ -23,12 +23,12 @@ import { NotificationService } from '../../core/services/notification.service';
 
       <form class="card space-y-4" [formGroup]="form" (ngSubmit)="save()">
         <div>
-          <label class="field-label" for="api_base_url">API_BASE_URL</label>
+          <label class="field-label" for="api_base_url">API endpoint</label>
           <input id="api_base_url" class="field-input" type="url" formControlName="apiBaseUrl" />
         </div>
 
         <div>
-          <label class="field-label" for="admin_api_key">ADMIN_API_KEY</label>
+          <label class="field-label" for="admin_api_key">Demo admin key</label>
           <input id="admin_api_key" class="field-input" type="text" formControlName="adminApiKey" />
         </div>
 
@@ -54,7 +54,7 @@ export class SettingsComponent {
     this.settingsService.save(this.form.getRawValue());
     this.notificationService.show({
       level: 'success',
-      title: 'Settings saved',
+      title: 'Workspace settings saved',
       message: 'New requests will use the updated values.',
     });
   }
@@ -64,8 +64,8 @@ export class SettingsComponent {
     this.form.reset(this.settingsService.getSnapshot());
     this.notificationService.show({
       level: 'info',
-      title: 'Defaults restored',
-      message: 'Settings were reset to environment defaults.',
+      title: 'Default settings restored',
+      message: 'Workspace settings were reset to environment defaults.',
     });
   }
 }

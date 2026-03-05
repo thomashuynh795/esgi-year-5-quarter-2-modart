@@ -16,31 +16,31 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Public Scan Token</h2>
-        <p class="page-subtitle">Use GET /v1/scan?pid=...&t=... from a form-friendly UI.</p>
+        <h2 class="page-title">Customer Scan Link</h2>
+        <p class="page-subtitle">Simulate a customer opening a garment authenticity link from packaging or care label.</p>
       </div>
 
       <form class="card grid gap-4 md:grid-cols-2" [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label class="field-label" for="pid">Product code (pid)</label>
+          <label class="field-label" for="pid">Garment reference</label>
           <input id="pid" class="field-input" type="text" formControlName="pid" />
         </div>
 
         <div>
-          <label class="field-label" for="token">Token (t)</label>
+          <label class="field-label" for="token">Customer link token</label>
           <input id="token" class="field-input" type="text" formControlName="t" />
         </div>
 
         <div class="md:col-span-2">
-          <button type="submit" class="btn-primary" [disabled]="form.invalid">Scan</button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid">Open customer link</button>
         </div>
       </form>
 
       @if (result()) {
         <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <div class="card">
-            <p class="text-sm font-semibold text-white">Scan summary</p>
-            <dl class="mt-4 grid gap-3 text-sm text-slate-300">
+            <p class="text-sm font-semibold text-slate-900">Customer scan summary</p>
+            <dl class="mt-4 grid gap-3 text-sm text-slate-600">
               <div class="flex items-center justify-between gap-3">
                 <dt>Status</dt>
                 <dd>{{ result()?.status }}</dd>
@@ -56,7 +56,7 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
             </dl>
           </div>
 
-          <app-json-viewer title="Scan response" [value]="result()" />
+          <app-json-viewer title="Customer scan response" [value]="result()" />
         </div>
       }
     </section>
@@ -98,7 +98,7 @@ export class PublicScanComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Scan completed',
+          title: 'Customer scan completed',
           message: `Result: ${this.extractResult(result)}.`,
         });
       }

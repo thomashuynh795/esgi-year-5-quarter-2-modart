@@ -9,7 +9,7 @@ import { Component, Input, signal } from '@angular/core';
     <div class="card">
       <div class="mb-3 flex items-center justify-between gap-3">
         <div>
-          <p class="text-sm font-semibold text-white">{{ title }}</p>
+          <p class="text-sm font-semibold text-slate-900">{{ title }}</p>
           @if (subtitle) {
             <p class="text-xs text-slate-400">{{ subtitle }}</p>
           }
@@ -19,7 +19,7 @@ import { Component, Input, signal } from '@angular/core';
         </button>
       </div>
 
-      <pre class="max-h-96 overflow-auto rounded-2xl bg-slate-950/80 p-4 text-xs text-cyan-100">{{ serialized }}</pre>
+      <pre class="max-h-96 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-cyan-100">{{ serialized }}</pre>
     </div>
   `,
 })

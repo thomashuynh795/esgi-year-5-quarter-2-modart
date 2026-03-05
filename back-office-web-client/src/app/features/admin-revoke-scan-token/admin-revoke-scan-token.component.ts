@@ -13,21 +13,21 @@ import { JsonViewerComponent } from '../../shared/components/json-viewer.compone
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Revoke Scan Token</h2>
-        <p class="page-subtitle">Call POST /admin/scan-tokens/:token_id/revoke.</p>
+        <h2 class="page-title">Disable a Customer Link</h2>
+        <p class="page-subtitle">Deactivate a previously issued customer authenticity link.</p>
       </div>
 
       <form class="card space-y-4" [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label class="field-label" for="token_id">Token ID</label>
+          <label class="field-label" for="token_id">Customer link ID</label>
           <input id="token_id" class="field-input" type="text" formControlName="token_id" />
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="form.invalid">Revoke</button>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid">Disable link</button>
       </form>
 
       @if (result()) {
-        <app-json-viewer title="Revoke scan token response" [value]="result()" />
+        <app-json-viewer title="Customer link disable response" [value]="result()" />
       }
     </section>
   `,
@@ -50,8 +50,8 @@ export class AdminRevokeScanTokenComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Scan token revoked',
-          message: 'The selected token is now revoked.',
+          title: 'Customer link disabled',
+          message: 'The selected customer link is now inactive.',
         });
       }
     });

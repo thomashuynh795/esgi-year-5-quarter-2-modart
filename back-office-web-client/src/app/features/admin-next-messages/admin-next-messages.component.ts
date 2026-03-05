@@ -20,23 +20,23 @@ interface GeneratedMessage {
   template: `
     <section class="space-y-6">
       <div>
-        <h2 class="page-title">Admin Next Messages</h2>
+        <h2 class="page-title">Prepare Tag Proofs</h2>
         <p class="page-subtitle">
-          Generate the next CMAC messages, inspect the raw payload and jump directly to Verify.
+          Generate the next authenticity proofs for a linked garment tag and test them immediately.
         </p>
       </div>
 
       <form class="card grid gap-4 md:grid-cols-3" [formGroup]="form" (ngSubmit)="submit()">
         <div class="md:col-span-3">
-          <label class="field-label" for="tag_id">Tag ID</label>
+          <label class="field-label" for="tag_id">Linked tag ID</label>
           <input id="tag_id" class="field-input" type="text" formControlName="tag_id" />
         </div>
         <div>
-          <label class="field-label" for="count">Count</label>
+          <label class="field-label" for="count">Number of proofs</label>
           <input id="count" class="field-input" type="number" formControlName="count" />
         </div>
         <div>
-          <label class="field-label" for="starting_counter">Starting counter (optional)</label>
+          <label class="field-label" for="starting_counter">Start from counter (optional)</label>
           <input
             id="starting_counter"
             class="field-input"
@@ -45,30 +45,30 @@ interface GeneratedMessage {
           />
         </div>
         <div class="flex items-end">
-          <button type="submit" class="btn-primary w-full" [disabled]="form.invalid">Generate</button>
+          <button type="submit" class="btn-primary w-full" [disabled]="form.invalid">Generate proofs</button>
         </div>
       </form>
 
       @if (messages().length > 0) {
         <div class="card">
-          <p class="text-sm font-semibold text-white">Generated messages</p>
+          <p class="text-sm font-semibold text-slate-900">Generated proofs</p>
           <div class="mt-4 overflow-x-auto">
             <table class="min-w-full text-left text-sm">
               <thead class="text-slate-400">
                 <tr>
                   <th class="px-2 py-2">Counter</th>
-                  <th class="px-2 py-2">CMAC</th>
+                  <th class="px-2 py-2">Proof</th>
                   <th class="px-2 py-2">Action</th>
                 </tr>
               </thead>
               <tbody>
                 @for (message of messages(); track message.counter + ':' + message.cmac) {
                   <tr class="border-t border-white/5">
-                    <td class="px-2 py-2 text-slate-200">{{ message.counter }}</td>
-                    <td class="px-2 py-2 font-mono text-xs text-cyan-200">{{ message.cmac }}</td>
+                    <td class="px-2 py-2 text-slate-800">{{ message.counter }}</td>
+                    <td class="px-2 py-2 font-mono text-xs text-sky-700">{{ message.cmac }}</td>
                     <td class="px-2 py-2">
                       <button type="button" class="btn-secondary" (click)="useInVerify(message)">
-                        Use in Verify
+                        Use in Authenticate
                       </button>
                     </td>
                   </tr>
@@ -80,7 +80,7 @@ interface GeneratedMessage {
       }
 
       @if (result()) {
-        <app-json-viewer title="Next messages response" [value]="result()" />
+        <app-json-viewer title="Generated proofs response" [value]="result()" />
       }
     </section>
   `,
@@ -127,8 +127,8 @@ export class AdminNextMessagesComponent {
       if (result.ok) {
         this.notificationService.show({
           level: 'success',
-          title: 'Messages generated',
-          message: `${this.readMessages(result).length} message(s) ready for verify.`,
+          title: 'Proofs generated',
+          message: `${this.readMessages(result).length} proof(s) ready for authentication.`,
         });
       }
     });
