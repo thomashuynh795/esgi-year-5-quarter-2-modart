@@ -42,7 +42,7 @@ class ClothDetailPage extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F7), // ✅ Apple-like background
+      backgroundColor: const Color(0xFFF6F6F7),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF6F6F7),
         foregroundColor: Colors.black,
@@ -62,7 +62,9 @@ class ClothDetailPage extends StatelessWidget {
                   context: context,
                   builder: (_) => AlertDialog(
                     title: const Text('Supprimer ce vêtement ?'),
-                    content: Text('Retirer ${cloth.name} de la bibliothèque.'),
+                    content: Text(
+                      'Retirer ${cloth.name} de la collection de vos vetements.',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
@@ -103,27 +105,6 @@ class ClothDetailPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            // SizedBox(
-            //   height: 300,
-            //   child: Center(
-            //     child: Image.asset(
-            //       cloth.imageAsset,
-            //       fit: BoxFit.contain,
-            //       filterQuality: FilterQuality.high,
-            //       errorBuilder: (_, __, ___) => Container(
-            //         width: 220,
-            //         height: 220,
-            //         decoration: BoxDecoration(
-            //           border: Border.all(color: const Color(0xFFEAEAEA)),
-            //           borderRadius: BorderRadius.circular(12),
-            //           color: Colors.transparent,
-            //         ),
-            //         alignment: Alignment.center,
-            //         child: const Icon(Icons.image_outlined),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             Expanded(
               child: Center(
                 child: Image.asset(
@@ -194,20 +175,8 @@ class ClothDetailPage extends StatelessWidget {
                             const SizedBox(height: 8),
                           ],
                           if (cloth.shop != null) ...[
-                            const Divider(
-                              height: 20,
-                              thickness: 1,
-                              color: Color(0xFFEAEAEA),
-                            ),
-                            Text(
-                              'Vous pouvez retrouver le ${cloth.name}, ici',
-                              style: bodyTextStyle.copyWith(
-                                color: Colors.black.withOpacity(0.8),
-                              ),
-                            ),
                             const SizedBox(height: 10),
 
-                            // ✅ bouton Apple-like en Collection, texte neutre sinon
                             if (showShopLink)
                               SizedBox(
                                 height: 44,
@@ -238,19 +207,12 @@ class ClothDetailPage extends StatelessWidget {
                                     }
                                   },
                                   child: const Text(
-                                    'Voir en boutique',
+                                    'Achetez',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
                                     ),
                                   ),
-                                ),
-                              )
-                            else
-                              Text(
-                                'boutique',
-                                style: valueStyle.copyWith(
-                                  color: Colors.black.withOpacity(0.7),
                                 ),
                               ),
                           ],

@@ -22,7 +22,8 @@ class HomeTabsPage extends StatefulWidget {
   State<HomeTabsPage> createState() => _HomeTabsPageState();
 }
 
-class _HomeTabsPageState extends State<HomeTabsPage> {
+class _HomeTabsPageState extends State<HomeTabsPage>
+    with WidgetsBindingObserver {
   late final ApiClient _client = ApiClient(baseUrl: dotenv.env['BASE_URL']!);
 
   late final AuthApi _auth = AuthApi(_client);
@@ -47,6 +48,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   void initState() {
     super.initState();
     Esp32SocketService.instance.connect('ws://10.213.38.168:81');
+    WidgetsBinding.instance.addObserver(this);
     _clothesFuture = _service.loadClothes();
 
     _clothesFuture.then((clothes) {
@@ -142,7 +144,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
 
     if (_lastScanName == name &&
         _lastScanAt != null &&
-        now.difference(_lastScanAt!).inMilliseconds < 1500) {
+        now.difference(_lastScanAt!).inMilliseconds < 800) {
       return;
     }
     _lastScanName = name;
@@ -156,14 +158,8 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
       return;
     }
 
-    if (_libraryIds.isEmpty) {
-      try {
-        final current = await _libraryApi.getLibrary();
-        _libraryIds = current.map((c) => c.id).toSet();
-      } catch (_) {
-        // si backend down, on laisse continuer
-      }
-    }
+    final current = await _libraryApi.getLibrary();
+    _libraryIds = current.map((c) => c.id).toSet();
 
     if (_libraryIds.contains(clothId)) {
       ScaffoldMessenger.of(
@@ -177,9 +173,11 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
       if (!mounted) return;
       _libraryIds.add(clothId);
       await _reloadLibrary();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("$name ajouté à la bibliothèque")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$name ajouté à la collection de vos vetements"),
+        ),
+      );
       await _openDetailForClothId(clothId, fromLibrary: true);
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -200,9 +198,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   }) async {
     if (_openingDetail) return;
     _openingDetail = true;
-    await PendingScans.instance.popAll();
     try {
-      // s’assurer que les maps JSON sont prêtes
       if (_idToCloth.isEmpty || _nameToCloth.isEmpty) {
         final clothes = await _clothesFuture;
         _idToCloth
@@ -246,7 +242,15 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   void dispose() {
     _nfcSub?.cancel();
     Esp32SocketService.instance.disconnect();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_openingDetail) {
+      _consumePendingScans();
+    }
   }
 
   Future<void> _syncFromJsonAndReloadLibrary() async {
@@ -318,8 +322,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
                           return AnimatedBuilder(
                             animation: controller,
                             builder: (_, __) {
-                              final onMaCollection =
-                                  controller.index == 0; // Ma Collection = 0
+                              final onMaCollection = controller.index == 0;
                               if (!onMaCollection)
                                 return const SizedBox.shrink();
 
@@ -465,7 +468,7 @@ class _SensorsPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Capteurs (live)',
+                'Affichage des capteurs de vos vêtements (live)',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
