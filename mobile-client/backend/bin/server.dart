@@ -51,6 +51,23 @@ Future<void> _ensureSchema() async {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   '''));
+
+  await _db.execute(Sql(r'''
+    CREATE TABLE IF NOT EXISTS clothes (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  '''));
+
+  await _db.execute(Sql(r'''
+    CREATE TABLE IF NOT EXISTS user_library (
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      cloth_id TEXT NOT NULL REFERENCES clothes(id) ON DELETE CASCADE,
+      scanned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, cloth_id)
+    );
+  '''));
 }
 
 String _jwtSecret() => Platform.environment['JWT_SECRET'] ?? 'dev-secret';
@@ -58,13 +75,12 @@ String _jwtSecret() => Platform.environment['JWT_SECRET'] ?? 'dev-secret';
 String _createJwt({required int userId, required String email}) {
   final jwt = JWT(
     {
-      'sub': userId, // subject = userId
+      'sub': userId,
       'email': email,
     },
     issuer: 'modart-backend',
   );
 
-  // Expire dans 7 jours
   return jwt.sign(
     SecretKey(_jwtSecret()),
     algorithm: JWTAlgorithm.HS256,
@@ -84,12 +100,76 @@ String? _readBearerToken(Request req) {
   return v.substring(7).trim();
 }
 
+int? _userIdFromJwt(Request req) {
+  final token = _readBearerToken(req);
+  if (token == null || token.isEmpty) return null;
+
+  try {
+    final jwt = _verifyJwt(token);
+    final sub = jwt.payload['sub'];
+    final userId = sub is int ? sub : int.tryParse(sub.toString());
+    return userId;
+  } on JWTException {
+    return null;
+  } on JWTExpiredException {
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
 Router buildRouter() {
   final r = Router();
 
   r.get('/health', (Request req) => _json(200, {'ok': true}));
 
-  // Vérifie si l'email existe
+  r.post('/collection/sync', (Request req) async {
+    final data = await _readJson(req);
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map((e) => {
+              'id': (e['id'] ?? '').toString(),
+              'name': (e['name'] ?? '').toString(),
+            })
+        .where((e) => e['id']!.isNotEmpty && e['name']!.isNotEmpty)
+        .toList();
+
+    if (items.isEmpty) return _json(400, {'error': 'items_required'});
+
+    for (final it in items) {
+      await _db.execute(
+        Sql.named(r'''
+          INSERT INTO clothes(id, name, updated_at)
+          VALUES (@id, @name, now())
+          ON CONFLICT (id)
+          DO UPDATE SET name=EXCLUDED.name, updated_at=now()
+        '''),
+        parameters: {'id': it['id'], 'name': it['name']},
+      );
+    }
+
+    final ids = items.map((e) => e['id']).toList();
+    await _db.execute(
+      Sql.named(r'''
+        DELETE FROM clothes
+        WHERE id <> ALL(@ids::text[])
+      '''),
+      parameters: {'ids': ids},
+    );
+
+    return _json(200, {'ok': true, 'count': items.length});
+  });
+
+  r.get('/collection', (Request req) async {
+    final result =
+        await _db.execute(Sql('SELECT id, name FROM clothes ORDER BY id'));
+    final items = result.map((row) {
+      final m = row.toColumnMap();
+      return {'id': m['id'].toString(), 'name': m['name'].toString()};
+    }).toList();
+    return _json(200, {'items': items});
+  });
+
   r.post('/auth/email-status', (Request req) async {
     final data = await _readJson(req);
     final email = (data['email'] ?? '').toString().trim().toLowerCase();
@@ -102,6 +182,7 @@ Router buildRouter() {
 
     return _json(200, {'exists': rows.isNotEmpty});
   });
+
   r.get('/auth/checkAuth', (Request req) async {
     final token = _readBearerToken(req);
     if (token == null || token.isEmpty) {
@@ -142,7 +223,7 @@ Router buildRouter() {
       return _json(500, {'error': 'server_error'});
     }
   });
-  // Register
+
   r.post('/auth/register', (Request req) async {
     final data = await _readJson(req);
     final email = (data['email'] ?? '').toString().trim().toLowerCase();
@@ -156,8 +237,7 @@ Router buildRouter() {
     try {
       final result = await _db.execute(
         Sql.named(
-          'INSERT INTO users(email, password_hash) '
-          'VALUES (@email, @password_hash) '
+          'INSERT INTO users(email, password_hash) VALUES (@email, @password_hash) '
           'RETURNING id, email, created_at',
         ),
         parameters: {'email': email, 'password_hash': hash},
@@ -180,12 +260,11 @@ Router buildRouter() {
       });
     } on UniqueViolationException {
       return _json(409, {'error': 'email_already_exists'});
-    } on ServerException catch (e) {
+    } on ServerException {
       return _json(500, {'error': 'db_error'});
     }
   });
 
-  // Login
   r.post('/auth/login', (Request req) async {
     final data = await _readJson(req);
     final email = (data['email'] ?? '').toString().trim().toLowerCase();
@@ -221,6 +300,94 @@ Router buildRouter() {
     });
   });
 
+  r.get('/library', (Request req) async {
+    final userId = _userIdFromJwt(req);
+    if (userId == null) return _json(401, {'error': 'unauthorized'});
+
+    final result = await _db.execute(
+      Sql.named(r'''
+        SELECT c.id, c.name, ul.scanned_at
+        FROM user_library ul
+        JOIN clothes c ON c.id = ul.cloth_id
+        WHERE ul.user_id = @uid
+        ORDER BY ul.scanned_at DESC
+      '''),
+      parameters: {'uid': userId},
+    );
+
+    final items = result.map((row) {
+      final m = row.toColumnMap();
+      return {
+        'id': m['id'].toString(),
+        'name': m['name'].toString(),
+        'scannedAt': (m['scanned_at'] as DateTime).toUtc().toIso8601String(),
+      };
+    }).toList();
+
+    return _json(200, {'items': items});
+  });
+
+  r.delete('/library/<clothId>', (Request req, String clothId) async {
+    final token = _readBearerToken(req);
+    if (token == null || token.isEmpty) {
+      return _json(401, {'error': 'missing_token'});
+    }
+
+    try {
+      final jwt = _verifyJwt(token);
+
+      final sub = jwt.payload['sub'];
+      final userId = sub is int ? sub : int.tryParse(sub.toString());
+      if (userId == null) return _json(401, {'error': 'invalid_token'});
+
+      await _db.execute(
+        Sql.named(
+          'DELETE FROM user_library WHERE user_id=@uid AND cloth_id=@cid',
+        ),
+        parameters: {'uid': userId, 'cid': clothId},
+      );
+
+      return _json(200, {'ok': true});
+    } on JWTExpiredException {
+      return _json(401, {'error': 'token_expired'});
+    } on JWTException {
+      return _json(401, {'error': 'invalid_token'});
+    } catch (_) {
+      return _json(500, {'error': 'server_error'});
+    }
+  });
+
+  r.post('/library/scan', (Request req) async {
+    final userId = _userIdFromJwt(req);
+    if (userId == null) return _json(401, {'error': 'unauthorized'});
+
+    final data = await _readJson(req);
+    final clothId = (data['clothId'] ?? '').toString().trim();
+    if (clothId.isEmpty) return _json(400, {'error': 'clothId_required'});
+
+    final found = await _db.execute(
+      Sql.named('SELECT id, name FROM clothes WHERE id=@id LIMIT 1'),
+      parameters: {'id': clothId},
+    );
+
+    if (found.isEmpty) return _json(404, {'error': 'not_in_collection'});
+
+    await _db.execute(
+      Sql.named(r'''
+        INSERT INTO user_library(user_id, cloth_id)
+        VALUES (@uid, @cid)
+        ON CONFLICT (user_id, cloth_id) DO NOTHING
+      '''),
+      parameters: {'uid': userId, 'cid': clothId},
+    );
+
+    final m = found.first.toColumnMap();
+    return _json(200, {
+      'added': true,
+      'cloth': {'id': m['id'], 'name': m['name']}
+    });
+  });
+
   return r;
 }
 
@@ -238,5 +405,5 @@ Future<void> main(List<String> args) async {
   final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8081;
   final server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
 
-  print('✅ Backend running on http://${server.address.host}:$port');
+  print('Backend running on http://${server.address.host}:$port');
 }

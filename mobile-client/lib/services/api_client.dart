@@ -38,6 +38,34 @@ class ApiClient {
     );
   }
 
+  Future<Map<String, dynamic>> deleteJson(
+    String path, {
+    Map<String, String>? headers,
+  }) async {
+    final uri = Uri.parse('$baseUrl$path');
+    final res = await http.delete(
+      uri,
+      headers: {'content-type': 'application/json', ...?headers},
+    );
+
+    Map<String, dynamic> data = {};
+    if (res.body.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(res.body);
+        if (decoded is Map<String, dynamic>) data = decoded;
+      } catch (_) {
+        data = {'error': res.body};
+      }
+    }
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return data;
+
+    throw ApiException(
+      res.statusCode,
+      (data['error'] ?? 'http_${res.statusCode}').toString(),
+    );
+  }
+
   Future<Map<String, dynamic>> getJson(
     String path, {
     Map<String, String>? headers,
