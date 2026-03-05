@@ -14,6 +14,7 @@ import '../services/nfc_scan.dart';
 import '../services/pending_scans.dart';
 import 'cloth_detail_page.dart';
 import '../services/esp32_socket_service.dart';
+import '../services/token_storage.dart';
 
 class HomeTabsPage extends StatefulWidget {
   const HomeTabsPage({super.key});
@@ -119,18 +120,33 @@ class _HomeTabsPageState extends State<HomeTabsPage>
     _consuming = true;
 
     try {
+      final token = await const TokenStorage().read();
+      if (token == null || token.isEmpty) {
+        // pas connecté -> on ne consomme pas, on garde les scans en attente
+        return;
+      }
       if (_nameToId.isEmpty) {
         final clothes = await _clothesFuture;
         if (!mounted) return;
         _nameToId = {for (final c in clothes) c.name: c.id};
       }
 
-      final pending = await PendingScans.instance.popAll();
+      final pending = await PendingScans.instance.readAll();
       if (pending.isEmpty) return;
+
+      final remaining = List<String>.from(pending);
 
       for (final scannedName in pending) {
         if (!mounted) return;
-        await _processOneScan(scannedName);
+
+        try {
+          await _processOneScan(scannedName);
+
+          remaining.remove(scannedName);
+          await PendingScans.instance.replaceAll(remaining);
+        } catch (_) {
+          break;
+        }
       }
     } finally {
       _consuming = false;
@@ -185,10 +201,13 @@ class _HomeTabsPageState extends State<HomeTabsPage>
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur ajout $name: ${e.error}")));
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur ajout $name: $e")));
+      await _dropPendingScan(name);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Backend indisponible, rescane le vêtement."),
+        ),
+      );
+      return;
     }
   }
 
@@ -294,6 +313,12 @@ class _HomeTabsPageState extends State<HomeTabsPage>
 
   void _openSettingsDrawer() {
     Scaffold.of(context).openEndDrawer();
+  }
+
+  Future<void> _dropPendingScan(String scannedName) async {
+    final list = await PendingScans.instance.readAll();
+    list.remove(scannedName.trim());
+    await PendingScans.instance.replaceAll(list);
   }
 
   @override
@@ -580,7 +605,7 @@ class _CenteredMinimalTabs extends StatelessWidget {
             child: Align(
               alignment: Alignment.center,
               child: Text(
-                'Ma Collection',
+                'My Collection',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

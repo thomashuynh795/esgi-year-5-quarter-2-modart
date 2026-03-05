@@ -3,6 +3,9 @@ import '../services/api_client.dart';
 import '../services/auth_api.dart';
 import 'password_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
+import '../services/nfc_scan.dart';
+import '../services/pending_scans.dart';
 
 class EmailPage extends StatefulWidget {
   const EmailPage({super.key});
@@ -12,14 +15,72 @@ class EmailPage extends StatefulWidget {
 }
 
 class _EmailPageState extends State<EmailPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    _loadPendingScanAndShowBanner();
+
+    _nfcSub = NfcScan.instance.stream.listen((name) async {
+      _pendingScanName = name.trim();
+      if (_pendingScanName!.isEmpty) return;
+
+      _showAuthBanner(_pendingScanName!);
+    });
+  }
+
+  Future<void> _loadPendingScanAndShowBanner() async {
+    final list = await PendingScans.instance.readAll();
+    if (!mounted) return;
+
+    if (list.isNotEmpty) {
+      _pendingScanName = list.last.trim();
+      if (_pendingScanName!.isNotEmpty) {
+        // On attend que le widget soit monté visuellement
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showAuthBanner(_pendingScanName!);
+        });
+      }
+    }
+  }
+
+  void _showAuthBanner(String name) {
+    // Nettoie l’ancien banner si déjà affiché
+    ScaffoldMessenger.of(context).clearMaterialBanners();
+
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: Colors.black,
+        content: Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'Veuillez vous authentifier, pour ajouter le vêtement $name à votre collection.',
+            textAlign: TextAlign.right,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                ScaffoldMessenger.of(context).clearMaterialBanners(),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   late final AuthApi _auth = AuthApi(
     ApiClient(baseUrl: dotenv.env['BASE_URL']!),
   );
   final _emailCtrl = TextEditingController();
   bool _loading = false;
+  StreamSubscription<String>? _nfcSub;
+  String? _pendingScanName;
 
   @override
   void dispose() {
+    _nfcSub?.cancel();
     _emailCtrl.dispose();
     super.dispose();
   }
@@ -37,7 +98,7 @@ class _EmailPageState extends State<EmailPage> {
       ).showSnackBar(const SnackBar(content: Text('Email invalide')));
       return;
     }
-
+    ScaffoldMessenger.of(context).clearMaterialBanners();
     setState(() => _loading = true);
     try {
       final exists = await _auth.emailExists(email);
