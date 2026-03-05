@@ -152,7 +152,7 @@ class ClothDetailPage extends StatelessWidget {
                         children: [
                           if (cloth.origin != null) ...[
                             _kv(
-                              'Origin',
+                              'Origine',
                               cloth.origin!,
                               labelStyle,
                               valueStyle,
@@ -200,7 +200,7 @@ class ClothDetailPage extends StatelessWidget {
                               color: Color(0xFFEAEAEA),
                             ),
                             Text(
-                              'Vous pouvez retrouver le ${cloth.name}, dans la',
+                              'Vous pouvez retrouver le ${cloth.name}, ici',
                               style: bodyTextStyle.copyWith(
                                 color: Colors.black.withOpacity(0.8),
                               ),

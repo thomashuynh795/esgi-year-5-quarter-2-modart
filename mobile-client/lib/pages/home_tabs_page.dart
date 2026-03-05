@@ -104,6 +104,8 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   }
 
   bool _consuming = false;
+  String? _lastScanName;
+  DateTime? _lastScanAt;
 
   Future<void> _consumePendingScans() async {
     if (_consuming) return;
@@ -129,7 +131,16 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   }
 
   Future<void> _processOneScan(String scannedName) async {
+    final now = DateTime.now();
     final name = scannedName.trim();
+
+    if (_lastScanName == name &&
+        _lastScanAt != null &&
+        now.difference(_lastScanAt!).inMilliseconds < 1500) {
+      return;
+    }
+    _lastScanName = name;
+    _lastScanAt = now;
     final clothId = _nameToId[name];
 
     if (clothId == null) {
