@@ -39,7 +39,7 @@ Required environment variables:
 ### Generate future one-time scan URLs
 
 ```bash
-curl -X POST "http://localhost:3000/v1/products/SKU-123/scan-tokens" \
+curl -X POST "http://localhost:8101/v1/products/SKU-123/scan-tokens" \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_API_KEY" \
   -d '{"count":3,"ttl_seconds":86400}'
@@ -54,7 +54,7 @@ Response:
 ### Verify and consume a token
 
 ```bash
-curl "http://localhost:3000/v1/scan?pid=SKU-123&t=<token>"
+curl "http://localhost:8101/v1/scan?pid=SKU-123&t=<token>"
 ```
 
 Status codes:

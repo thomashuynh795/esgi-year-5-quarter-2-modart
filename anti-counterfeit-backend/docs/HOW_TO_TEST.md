@@ -71,7 +71,7 @@ Each token is single-use:
 ## Enroll Dynamic Tag
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/enroll \
+curl -X POST http://localhost:8101/admin/tags/enroll \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{
@@ -86,7 +86,7 @@ curl -X POST http://localhost:3000/admin/tags/enroll \
 ## Generate Dynamic Test Vectors
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/<tag_id>/next-messages \
+curl -X POST http://localhost:8101/admin/tags/<tag_id>/next-messages \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{"count":3}'
@@ -102,7 +102,7 @@ Expected behavior:
 ## Verify Dynamic Messages
 
 ```bash
-curl -X POST http://localhost:3000/verify \
+curl -X POST http://localhost:8101/verify \
   -H "Content-Type: application/json" \
   -d '{
     "tag_uid": "04AABBCCDD",
@@ -142,14 +142,14 @@ Implication:
 Example:
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/<tag_id>/rotate-key \
+curl -X POST http://localhost:8101/admin/tags/<tag_id>/rotate-key \
   -H "X-Admin-Key: $ADMIN_KEY"
 ```
 
 ## Reconfigure Dynamic Tag
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/<tag_id>/reconfigure \
+curl -X POST http://localhost:8101/admin/tags/<tag_id>/reconfigure \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{
@@ -161,7 +161,7 @@ curl -X POST http://localhost:3000/admin/tags/<tag_id>/reconfigure \
 ## Generate One-Time Tokens for a Product
 
 ```bash
-curl -X POST http://localhost:3000/v1/products/TSHIRT-001/scan-tokens \
+curl -X POST http://localhost:8101/v1/products/TSHIRT-001/scan-tokens \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{
@@ -173,7 +173,7 @@ curl -X POST http://localhost:3000/v1/products/TSHIRT-001/scan-tokens \
 ## Enroll Tag in `one_time_tokens` Mode
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/enroll \
+curl -X POST http://localhost:8101/admin/tags/enroll \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{
@@ -190,7 +190,7 @@ The response includes an initial token batch and URLs ready to write into NDEF r
 ## Scan One-Time Token
 
 ```bash
-curl "http://localhost:3000/v1/scan?pid=TSHIRT-001&t=<token>"
+curl "http://localhost:8101/v1/scan?pid=TSHIRT-001&t=<token>"
 ```
 
 Expected behavior:
@@ -203,14 +203,14 @@ Expected behavior:
 ## Revoke One-Time Token
 
 ```bash
-curl -X POST http://localhost:3000/admin/scan-tokens/<token_id>/revoke \
+curl -X POST http://localhost:8101/admin/scan-tokens/<token_id>/revoke \
   -H "X-Admin-Key: $ADMIN_KEY"
 ```
 
 ## Reconfigure One-Time Token Tag
 
 ```bash
-curl -X POST http://localhost:3000/admin/tags/<tag_id>/reconfigure \
+curl -X POST http://localhost:8101/admin/tags/<tag_id>/reconfigure \
   -H "Content-Type: application/json" \
   -H "X-Admin-Key: $ADMIN_KEY" \
   -d '{

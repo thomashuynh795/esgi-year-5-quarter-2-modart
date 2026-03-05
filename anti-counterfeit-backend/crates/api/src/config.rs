@@ -13,10 +13,10 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
-        let address = std::env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:3000".into());
+        let address = std::env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:8101".into());
         let database_url =
             std::env::var("DATABASE_URL").context("DATABASE_URL is required in the root .env")?;
-        let api_domain = std::env::var("API_DOMAIN").unwrap_or_else(|_| "localhost:3000".into());
+        let api_domain = std::env::var("API_DOMAIN").unwrap_or_else(|_| "localhost:8101".into());
         let token_secret = std::env::var("TOKEN_SECRET")
             .or_else(|_| std::env::var("HMAC_SECRET"))
             .or_else(|_| std::env::var("SCAN_TOKEN_SECRET"))
