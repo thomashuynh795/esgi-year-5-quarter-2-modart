@@ -77,9 +77,11 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   void _openSensorsSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
       backgroundColor: Colors.white,
-      builder: (_) => const _SensorsPanel(),
+      builder: (_) => const _SensorsSheet(),
     );
   }
 
@@ -106,9 +108,12 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   bool _consuming = false;
   String? _lastScanName;
   DateTime? _lastScanAt;
+  bool _openingDetail = false;
 
   Future<void> _consumePendingScans() async {
+    if (_openingDetail) return;
     if (_consuming) return;
+
     _consuming = true;
 
     try {
@@ -131,6 +136,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
   }
 
   Future<void> _processOneScan(String scannedName) async {
+    if (_openingDetail) return;
     final now = DateTime.now();
     final name = scannedName.trim();
 
@@ -174,6 +180,7 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("$name ajouté à la bibliothèque")));
+      await _openDetailForClothId(clothId, fromLibrary: true);
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -184,6 +191,54 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur ajout $name: $e")));
+    }
+  }
+
+  Future<void> _openDetailForClothId(
+    String clothId, {
+    required bool fromLibrary,
+  }) async {
+    if (_openingDetail) return;
+    _openingDetail = true;
+    await PendingScans.instance.popAll();
+    try {
+      // s’assurer que les maps JSON sont prêtes
+      if (_idToCloth.isEmpty || _nameToCloth.isEmpty) {
+        final clothes = await _clothesFuture;
+        _idToCloth
+          ..clear()
+          ..addEntries(clothes.map((c) => MapEntry(c.id, c)));
+        _nameToCloth
+          ..clear()
+          ..addEntries(clothes.map((c) => MapEntry(c.name, c)));
+      }
+
+      final cloth = _idToCloth[clothId];
+      if (cloth == null) return;
+      if (!mounted) return;
+
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ClothDetailPage(
+            cloth: cloth,
+            showShopLink: false,
+            canDelete: fromLibrary,
+            onDelete: fromLibrary
+                ? (id) async {
+                    await _libraryApi.removeFromLibrary(id);
+
+                    _libraryIds.remove(id);
+                    _lastScanName = null;
+                    _lastScanAt = null;
+
+                    await _reloadLibrary();
+                  }
+                : null,
+          ),
+        ),
+      );
+    } finally {
+      _openingDetail = false;
     }
   }
 
@@ -356,6 +411,9 @@ class _HomeTabsPageState extends State<HomeTabsPage> {
                               showShopLink: false,
                               onDeleteFromLibrary: (clothId) async {
                                 await _libraryApi.removeFromLibrary(clothId);
+                                _libraryIds.remove(clothId);
+                                _lastScanName = null;
+                                _lastScanAt = null;
                                 await _reloadLibrary();
                               },
                             );
@@ -456,6 +514,26 @@ class _SensorsPanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SensorsSheet extends StatelessWidget {
+  const _SensorsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.35,
+      minChildSize: 0.25,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return ListView(
+          controller: scrollController,
+          children: const [_SensorsPanel()],
+        );
+      },
     );
   }
 }
