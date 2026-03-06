@@ -153,32 +153,32 @@ class _EmailPageState extends State<EmailPage> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          _SocialButton(
-                            text: "Continue with Google",
-                            icon: Icons.g_mobiledata,
-                            onPressed: () {},
-                          ),
-                          const SizedBox(height: 12),
-                          _SocialButton(
-                            text: "Continue with Apple",
-                            icon: Icons.apple,
-                            onPressed: () {},
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: const [
-                              Expanded(child: Divider(thickness: 1)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  "or",
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                              Expanded(child: Divider(thickness: 1)),
-                            ],
-                          ),
+                          // const SizedBox(height: 24),
+                          // _SocialButton(
+                          //   text: "Continue with Google",
+                          //   icon: Icons.g_mobiledata,
+                          //   onPressed: () {},
+                          // ),
+                          // const SizedBox(height: 12),
+                          // _SocialButton(
+                          //   text: "Continue with Apple",
+                          //   icon: Icons.apple,
+                          //   onPressed: () {},
+                          // ),
+                          // const SizedBox(height: 24),
+                          // Row(
+                          //   children: const [
+                          //     Expanded(child: Divider(thickness: 1)),
+                          //     Padding(
+                          //       padding: EdgeInsets.symmetric(horizontal: 12),
+                          //       child: Text(
+                          //         "or",
+                          //         style: TextStyle(color: Colors.grey),
+                          //       ),
+                          //     ),
+                          //     Expanded(child: Divider(thickness: 1)),
+                          //   ],
+                          // ),
                           const SizedBox(height: 24),
                           const Text("Email", style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
