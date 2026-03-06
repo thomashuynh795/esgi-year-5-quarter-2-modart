@@ -2,6 +2,7 @@
   {
     "id": "1",
     "name": "H.001.1",
+    "Taille": "M",
     "origin": "Made In France",
     "reference": "H.001.1",
     "matière": "100% Coton",
@@ -16,6 +17,7 @@
   {
     "id": "2",
     "name": "H.001.2",
+    "Taille": "M",
     "origin": "Made In France",
     "reference": "H.001.2",
     "matière": "42 % Viscose / 39% Coton / 18% Lin / 1% Elasthane",
@@ -30,6 +32,7 @@
   {
     "id": "3",
     "name": "H.001.3",
+    "Taille": "M",
     "origin": "Made In France",
     "reference": "H.001.3",
     "matière": "45% Coton / 55 % Laine",

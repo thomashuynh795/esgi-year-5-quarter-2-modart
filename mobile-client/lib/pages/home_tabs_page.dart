@@ -79,10 +79,24 @@ class _HomeTabsPageState extends State<HomeTabsPage>
 
     _consumePendingScans();
     _reloadLibrary();
-    _nfcSub = NfcScan.instance.stream.listen((name) async {
-      await PendingScans.instance.add(name);
-      await _consumePendingScans();
-    });
+    _nfcSub = NfcScan.instance.stream.listen(
+      (name) async {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Tag détecté : ${name.trim()}')));
+
+        await PendingScans.instance.add(name);
+        await _consumePendingScans();
+      },
+      onError: (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur NFC: $e')));
+      },
+    );
   }
 
   void _openSensorsSheet(BuildContext context) {
@@ -130,8 +144,18 @@ class _HomeTabsPageState extends State<HomeTabsPage>
     try {
       final token = await const TokenStorage().read();
       if (token == null || token.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Vous n'êtes pas connecté. Reconnecte-toi puis rescane.",
+              ),
+            ),
+          );
+        }
         return;
       }
+
       if (_nameToId.isEmpty) {
         final clothes = await _clothesFuture;
         if (!mounted) return;
