@@ -494,7 +494,7 @@ class _SensorsPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Affichage des capteurs de vos vêtements (live)',
+                'DressLive',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),

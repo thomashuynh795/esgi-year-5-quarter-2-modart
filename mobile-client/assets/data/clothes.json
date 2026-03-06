@@ -1,36 +1,58 @@
 [
   {
     "id": "1",
-    "name": "PK-01",
+    "name": "H.001.1",
     "origin": "Made In France",
-    "reference": "PK-01",
-    "matière": "96% Coton / 4% Elasthane",
+    "reference": "H.001.1",
+    "matière": "100% Coton",
     "entretien": [
-      "Lavage à 30°", "Pas de sèche linge", "Repassage à basse température(Max 110°)", "Pas de Javel"
+      "Lavage à 30°",
+      "Pas de sèche linge",
+      "Repassage à basse température(Max 110°)",
+      "Pas de Javel"
     ],
-    "shop": "https://use-less.fr/?page_id=1999"
+    "shop": "https://use-less.fr/?page_id=1949"
   },
   {
     "id": "2",
-    "name": "JC-10"
+    "name": "H.001.2",
+    "origin": "Made In France",
+    "reference": "H.001.2",
+    "matière": "42 % Viscose / 39% Coton / 18% Lin / 1% Elasthane",
+    "entretien": [
+      "Lavage à 30°",
+      "Pas de sèche linge",
+      "Repassage à basse température(Max 110°)",
+      "Pas de Javel"
+    ],
+    "shop": "https://use-less.fr/?page_id=1989"
   },
   {
     "id": "3",
-    "name": "JC-11"
+    "name": "H.001.3",
+    "origin": "Made In France",
+    "reference": "H.001.3",
+    "matière": "45% Coton / 55 % Laine",
+    "entretien": [
+      "Lavage à 30°",
+      "Pas de sèche linge",
+      "Repassage à basse température(Max 110°)",
+      "Pas de Javel"
+    ],
+    "shop": "https://use-less.fr/?page_id=1200"
   },
   {
     "id": "4",
-    "name": "SL-03"
-  },
-  {
-    "id": "5",
     "name": "T.002",
     "Taille": "M",
     "origin": "Made In France",
     "reference": "T.OO2.1",
     "matière": "96% Coton / 4% Elasthane",
     "entretien": [
-      "Lavage à 30°", "Pas de sèche linge", "Repassage à basse température(Max 110°)", "Pas de Javel"
+      "Lavage à 30°",
+      "Pas de sèche linge",
+      "Repassage à basse température(Max 110°)",
+      "Pas de Javel"
     ],
     "shop": "https://use-less.fr/?page_id=1999"
   }

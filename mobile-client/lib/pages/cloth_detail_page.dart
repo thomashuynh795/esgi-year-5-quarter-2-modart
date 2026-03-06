@@ -61,7 +61,7 @@ class _ClothDetailPageState extends State<ClothDetailPage> {
     final isT002 = (widget.cloth.name.trim() == 'T.002');
     if (!isT002) return;
 
-    const url = 'ws://10.247.101.57:81';
+    const url = 'ws://10.213.255.72:81';
     Esp32MovementService.instance.connect(url);
 
     _sensorSub = Esp32MovementService.instance.stream.listen(
@@ -358,7 +358,7 @@ class _ClothDetailPageState extends State<ClothDetailPage> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Courbes : X = gauche/droite • Y = avant/arrière • Z = haut/bas (gravité incluse)',
+                        'Courbes : X = gauche/droite (bleu) • Y = avant/arrière (rose) • Z = haut/bas (gravité incluse)',
                         style: TextStyle(fontSize: 11, color: Colors.grey),
                       ),
 
@@ -383,7 +383,7 @@ class _ClothDetailPageState extends State<ClothDetailPage> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Courbes : X = roulis • Y = tangage • Z = lacet (rotations du capteur)',
+                        'Courbes : X = roulis (bleu) • Y = tangage (rose) • Z = lacet (rotations du capteur)',
                         style: TextStyle(fontSize: 11, color: Colors.grey),
                       ),
 
@@ -395,16 +395,17 @@ class _ClothDetailPageState extends State<ClothDetailPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Plus la courbe monte, plus le vêtement bouge.',
-                        style: TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
+
                       const SizedBox(height: 6),
                       SizedBox(
                         height: 100,
                         width: double.infinity,
                         child: _SingleChart(values: _rg),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Plus la courbe monte, plus le vêtement bouge.',
+                        style: TextStyle(fontSize: 11, color: Colors.grey),
                       ),
                     ],
                   ),
