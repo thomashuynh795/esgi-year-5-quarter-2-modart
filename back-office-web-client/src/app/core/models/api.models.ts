@@ -62,3 +62,37 @@ export interface AppNotification {
   title: string;
   message: string;
 }
+
+export interface CatalogItemRecord {
+  item_id: string;
+  product_code: string;
+  size: string | null;
+  color: string | null;
+  created_at: string;
+  updated_at: string;
+  tag: {
+    tag_id: string;
+    tag_uid: string;
+    mode: TagMode;
+    status: string;
+    key_version: number;
+    last_counter: number | null;
+  };
+}
+
+export interface CatalogTagRecord {
+  tag_id: string;
+  tag_uid: string;
+  mode: TagMode;
+  status: string;
+  key_version: number;
+  last_counter: number | null;
+  created_at: string;
+  updated_at: string;
+  item: {
+    item_id: string;
+    product_code: string;
+    size: string | null;
+    color: string | null;
+  } | null;
+}

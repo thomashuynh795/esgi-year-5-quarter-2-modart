@@ -6,11 +6,98 @@ use crate::modules::tags::application::ports::{
 use crate::modules::tags::application::provision::{
     EnrollTagUseCase, GeneratedBatch, OneTimeTokenRecord, build_dynamic_message,
 };
-use crate::modules::tags::domain::entities::{AuditEvent, TagMode, TagStatus};
+use crate::modules::tags::domain::entities::{AuditEvent, Item, Tag, TagMode, TagStatus};
 use chrono::Utc;
 use serde_json::json;
+use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
+
+pub struct CatalogItemView {
+    pub item: Item,
+    pub tag: Tag,
+}
+
+pub struct CatalogTagView {
+    pub tag: Tag,
+    pub item: Option<Item>,
+}
+
+pub struct ListCatalogItemsUseCase {
+    item_repo: Arc<dyn ItemRepository>,
+    tag_repo: Arc<dyn TagRepository>,
+}
+
+impl ListCatalogItemsUseCase {
+    pub fn new(item_repo: Arc<dyn ItemRepository>, tag_repo: Arc<dyn TagRepository>) -> Self {
+        Self {
+            item_repo,
+            tag_repo,
+        }
+    }
+
+    pub async fn execute(&self) -> Result<Vec<CatalogItemView>, AppError> {
+        let items = self.item_repo.list_all().await?;
+        let tags_by_id: HashMap<Uuid, Tag> = self
+            .tag_repo
+            .list_all()
+            .await?
+            .into_iter()
+            .map(|tag| (tag.id, tag))
+            .collect();
+
+        let mut entries = items
+            .into_iter()
+            .filter_map(|item| {
+                tags_by_id
+                    .get(&item.tag_id)
+                    .cloned()
+                    .map(|tag| CatalogItemView { item, tag })
+            })
+            .collect::<Vec<_>>();
+
+        entries.sort_by(|left, right| right.item.created_at.cmp(&left.item.created_at));
+        Ok(entries)
+    }
+}
+
+pub struct ListCatalogTagsUseCase {
+    item_repo: Arc<dyn ItemRepository>,
+    tag_repo: Arc<dyn TagRepository>,
+}
+
+impl ListCatalogTagsUseCase {
+    pub fn new(item_repo: Arc<dyn ItemRepository>, tag_repo: Arc<dyn TagRepository>) -> Self {
+        Self {
+            item_repo,
+            tag_repo,
+        }
+    }
+
+    pub async fn execute(&self) -> Result<Vec<CatalogTagView>, AppError> {
+        let items_by_tag_id: HashMap<Uuid, Item> = self
+            .item_repo
+            .list_all()
+            .await?
+            .into_iter()
+            .map(|item| (item.tag_id, item))
+            .collect();
+
+        let mut entries = self
+            .tag_repo
+            .list_all()
+            .await?
+            .into_iter()
+            .map(|tag| CatalogTagView {
+                item: items_by_tag_id.get(&tag.id).cloned(),
+                tag,
+            })
+            .collect::<Vec<_>>();
+
+        entries.sort_by(|left, right| right.tag.created_at.cmp(&left.tag.created_at));
+        Ok(entries)
+    }
+}
 
 pub struct RevokeTagUseCase {
     tag_repo: Arc<dyn TagRepository>,

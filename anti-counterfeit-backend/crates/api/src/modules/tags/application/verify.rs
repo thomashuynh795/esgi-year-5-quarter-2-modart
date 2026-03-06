@@ -137,6 +137,10 @@ mod tests {
             Ok(self.tags.lock().unwrap().get(&id).cloned())
         }
 
+        async fn list_all(&self) -> Result<Vec<Tag>, AppError> {
+            Ok(self.tags.lock().unwrap().values().cloned().collect())
+        }
+
         async fn update_counter_if_greater(
             &self,
             tag_id: Uuid,

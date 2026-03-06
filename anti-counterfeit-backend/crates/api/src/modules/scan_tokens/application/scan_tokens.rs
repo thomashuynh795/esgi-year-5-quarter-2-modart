@@ -270,6 +270,10 @@ mod tests {
             Ok(None)
         }
 
+        async fn list_all(&self) -> Result<Vec<Item>, AppError> {
+            Ok(Vec::new())
+        }
+
         async fn exists_by_product_code(&self, product_code: &str) -> Result<bool, AppError> {
             Ok(self
                 .products

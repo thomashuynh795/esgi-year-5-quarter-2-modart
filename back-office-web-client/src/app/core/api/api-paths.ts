@@ -3,6 +3,8 @@ export const apiPaths = {
   verify: '/verify',
   scan: '/v1/scan',
   enroll: '/admin/tags/enroll',
+  listItems: '/admin/items',
+  listTags: '/admin/tags',
   provision: '/provision',
   nextMessages: (tagId: string) => `/admin/tags/${tagId}/next-messages`,
   revokeTag: (tagId: string) => `/admin/tags/${tagId}/revoke`,

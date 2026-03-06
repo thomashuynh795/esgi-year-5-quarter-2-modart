@@ -4,6 +4,7 @@ import { PublicHealthComponent } from './features/public-health/public-health.co
 import { PublicVerifyComponent } from './features/public-verify/public-verify.component';
 import { PublicScanComponent } from './features/public-scan/public-scan.component';
 import { AdminEnrollComponent } from './features/admin-enroll/admin-enroll.component';
+import { AdminCatalogComponent } from './features/admin-catalog/admin-catalog.component';
 import { AdminNextMessagesComponent } from './features/admin-next-messages/admin-next-messages.component';
 import { AdminRevokeTagComponent } from './features/admin-revoke-tag/admin-revoke-tag.component';
 import { AdminRotateKeyComponent } from './features/admin-rotate-key/admin-rotate-key.component';
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'public/health', component: PublicHealthComponent },
   { path: 'public/verify', component: PublicVerifyComponent },
   { path: 'public/scan', component: PublicScanComponent },
+  { path: 'admin/catalog', component: AdminCatalogComponent },
   { path: 'admin/enroll', component: AdminEnrollComponent },
   { path: 'admin/next-messages', component: AdminNextMessagesComponent },
   { path: 'admin/revoke-tag', component: AdminRevokeTagComponent },

@@ -9,8 +9,8 @@ use api::modules::scan_tokens::domain::entities::{
 };
 use api::modules::scan_tokens::infrastructure::crypto::hmac_scan_token::HmacScanTokenService;
 use api::modules::tags::application::admin::{
-    NextMessagesUseCase, ReconfigureTagUseCase, RevokeScanTokenUseCase, RevokeTagUseCase,
-    RotateKeyUseCase,
+    ListCatalogItemsUseCase, ListCatalogTagsUseCase, NextMessagesUseCase, ReconfigureTagUseCase,
+    RevokeScanTokenUseCase, RevokeTagUseCase, RotateKeyUseCase,
 };
 use api::modules::tags::application::ports::{
     AuditEventRepository, ItemRepository, ScanEventRepository, TagRepository,
@@ -54,6 +54,10 @@ impl TagRepository for InMemoryTagRepository {
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Tag>, AppError> {
         Ok(self.tags.lock().unwrap().get(&id).cloned())
+    }
+
+    async fn list_all(&self) -> Result<Vec<Tag>, AppError> {
+        Ok(self.tags.lock().unwrap().values().cloned().collect())
     }
 
     async fn update_counter_if_greater(
@@ -126,6 +130,10 @@ impl ItemRepository for InMemoryItemRepository {
             .values()
             .find(|item| item.tag_id == tag_id)
             .cloned())
+    }
+
+    async fn list_all(&self) -> Result<Vec<Item>, AppError> {
+        Ok(self.items.lock().unwrap().values().cloned().collect())
     }
 
     async fn exists_by_product_code(&self, product_code: &str) -> Result<bool, AppError> {
@@ -302,6 +310,14 @@ async fn build_app() -> TestHarness {
         next_messages_usecase: Arc::new(NextMessagesUseCase::new(
             tag_repo.clone(),
             crypto_service.clone(),
+        )),
+        list_catalog_items_usecase: Arc::new(ListCatalogItemsUseCase::new(
+            item_repo.clone(),
+            tag_repo.clone(),
+        )),
+        list_catalog_tags_usecase: Arc::new(ListCatalogTagsUseCase::new(
+            item_repo.clone(),
+            tag_repo.clone(),
         )),
         revoke_scan_token_usecase: Arc::new(RevokeScanTokenUseCase::new(token_repo.clone())),
         generate_scan_tokens_usecase: Arc::new(GenerateScanTokensUseCase::new(

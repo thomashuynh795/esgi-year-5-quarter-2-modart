@@ -36,6 +36,7 @@ export class App {
     {
       label: '(USE)LESS Ops',
       links: [
+        { label: 'Catalog Explorer', path: '/admin/catalog' },
         { label: 'Create Garment + Tag', path: '/admin/enroll' },
         { label: 'Prepare Tag Proofs', path: '/admin/next-messages' },
         { label: 'Disable Garment Tag', path: '/admin/revoke-tag' },

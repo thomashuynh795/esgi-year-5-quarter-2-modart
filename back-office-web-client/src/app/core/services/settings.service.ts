@@ -37,6 +37,10 @@ export class SettingsService {
   }
 
   private loadSettings(): SettingsSnapshot {
+    console.log({
+      apiBaseUrl: localStorage.getItem(this.apiBaseUrlKey) ?? environment.API_BASE_URL,
+      adminApiKey: localStorage.getItem(this.adminApiKeyKey) ?? environment.ADMIN_API_KEY,
+    });
     return {
       apiBaseUrl: localStorage.getItem(this.apiBaseUrlKey) ?? environment.API_BASE_URL,
       adminApiKey: localStorage.getItem(this.adminApiKeyKey) ?? environment.ADMIN_API_KEY,

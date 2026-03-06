@@ -102,6 +102,15 @@ impl TagRepository for SeaOrmTagRepository {
         result.map(Tag::try_from).transpose()
     }
 
+    async fn list_all(&self) -> Result<Vec<Tag>, AppError> {
+        let results = tag::Entity::find()
+            .all(&*self.db)
+            .await
+            .map_err(|error| AppError::Internal(error.to_string()))?;
+
+        results.into_iter().map(Tag::try_from).collect()
+    }
+
     async fn update_counter_if_greater(
         &self,
         tag_id: Uuid,
@@ -210,6 +219,15 @@ impl ItemRepository for SeaOrmItemRepository {
             .map_err(|error| AppError::Internal(error.to_string()))?;
 
         Ok(result.map(Item::from))
+    }
+
+    async fn list_all(&self) -> Result<Vec<Item>, AppError> {
+        let results = item::Entity::find()
+            .all(&*self.db)
+            .await
+            .map_err(|error| AppError::Internal(error.to_string()))?;
+
+        Ok(results.into_iter().map(Item::from).collect())
     }
 
     async fn exists_by_product_code(&self, product_code: &str) -> Result<bool, AppError> {

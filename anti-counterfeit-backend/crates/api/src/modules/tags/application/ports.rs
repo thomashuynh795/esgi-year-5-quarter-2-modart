@@ -7,6 +7,7 @@ pub trait TagRepository: Send + Sync {
     async fn save(&self, tag: &Tag) -> Result<Tag, AppError>;
     async fn find_by_uid(&self, tag_uid: &str) -> Result<Option<Tag>, AppError>;
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Tag>, AppError>;
+    async fn list_all(&self) -> Result<Vec<Tag>, AppError>;
     async fn update_counter_if_greater(
         &self,
         tag_id: Uuid,
@@ -26,6 +27,7 @@ pub trait TagRepository: Send + Sync {
 pub trait ItemRepository: Send + Sync {
     async fn save(&self, item: &Item) -> Result<Item, AppError>;
     async fn find_by_tag_id(&self, tag_id: Uuid) -> Result<Option<Item>, AppError>;
+    async fn list_all(&self) -> Result<Vec<Item>, AppError>;
     async fn exists_by_product_code(&self, product_code: &str) -> Result<bool, AppError>;
 }
 

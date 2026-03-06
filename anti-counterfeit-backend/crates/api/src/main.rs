@@ -108,6 +108,18 @@ async fn main() -> Result<()> {
             tag_repo.clone(),
             crypto_service.clone(),
         ));
+    let list_catalog_items_usecase = Arc::new(
+        modules::tags::application::admin::ListCatalogItemsUseCase::new(
+            item_repo.clone(),
+            tag_repo.clone(),
+        ),
+    );
+    let list_catalog_tags_usecase = Arc::new(
+        modules::tags::application::admin::ListCatalogTagsUseCase::new(
+            item_repo.clone(),
+            tag_repo.clone(),
+        ),
+    );
     let revoke_scan_token_usecase = Arc::new(
         modules::tags::application::admin::RevokeScanTokenUseCase::new(scan_token_repo.clone()),
     );
@@ -135,6 +147,8 @@ async fn main() -> Result<()> {
         rotate_usecase,
         reconfigure_usecase,
         next_messages_usecase,
+        list_catalog_items_usecase,
+        list_catalog_tags_usecase,
         revoke_scan_token_usecase,
         generate_scan_tokens_usecase,
         consume_scan_token_usecase,

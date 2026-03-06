@@ -130,3 +130,45 @@ pub struct VerifyHintDto {
     pub endpoint: String,
     pub body_template: serde_json::Value,
 }
+
+#[derive(Serialize)]
+pub struct CatalogItemDto {
+    pub item_id: Uuid,
+    pub product_code: String,
+    pub size: Option<String>,
+    pub color: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub tag: CatalogTagSummaryDto,
+}
+
+#[derive(Serialize)]
+pub struct CatalogTagDto {
+    pub tag_id: Uuid,
+    pub tag_uid: String,
+    pub mode: String,
+    pub status: String,
+    pub key_version: i32,
+    pub last_counter: Option<i64>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub item: Option<CatalogItemSummaryDto>,
+}
+
+#[derive(Serialize)]
+pub struct CatalogTagSummaryDto {
+    pub tag_id: Uuid,
+    pub tag_uid: String,
+    pub mode: String,
+    pub status: String,
+    pub key_version: i32,
+    pub last_counter: Option<i64>,
+}
+
+#[derive(Serialize)]
+pub struct CatalogItemSummaryDto {
+    pub item_id: Uuid,
+    pub product_code: String,
+    pub size: Option<String>,
+    pub color: Option<String>,
+}

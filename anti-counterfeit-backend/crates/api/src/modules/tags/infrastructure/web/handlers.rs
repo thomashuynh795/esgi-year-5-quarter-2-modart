@@ -9,10 +9,11 @@ use crate::modules::tags::application::provision::{
 use crate::modules::tags::application::verify::VerifyRequest;
 use crate::modules::tags::domain::entities::{ScanVerdict, TagMode};
 use crate::modules::tags::infrastructure::web::dtos::{
-    EnrollTagRequest, EnrollTagResponse, GeneratedMessageDto, GeneratedTokenDto,
-    NextMessagesRequest, NextMessagesResponse, ProductDto, ReconfigurePayloadDto,
-    ReconfigureTagRequest, ReconfigureTagResponse, RotateKeyResponse, TagPayloadDto, VerifyHintDto,
-    VerifyTagRequest, VerifyTagResponse,
+    CatalogItemDto, CatalogItemSummaryDto, CatalogTagDto, CatalogTagSummaryDto, EnrollTagRequest,
+    EnrollTagResponse, GeneratedMessageDto, GeneratedTokenDto, NextMessagesRequest,
+    NextMessagesResponse, ProductDto, ReconfigurePayloadDto, ReconfigureTagRequest,
+    ReconfigureTagResponse, RotateKeyResponse, TagPayloadDto, VerifyHintDto, VerifyTagRequest,
+    VerifyTagResponse,
 };
 use axum::{
     Json,
@@ -227,6 +228,81 @@ pub async fn next_messages(
                     }),
                 },
             }),
+        )
+            .into_response(),
+        Err(error) => map_app_error(error),
+    }
+}
+
+pub async fn list_catalog_items(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> impl IntoResponse {
+    if let Err(error) = require_admin(&headers, &state.admin_key) {
+        return map_app_error(error);
+    }
+
+    match state.list_catalog_items_usecase.execute().await {
+        Ok(items) => (
+            StatusCode::OK,
+            Json(
+                items
+                    .into_iter()
+                    .map(|entry| CatalogItemDto {
+                        item_id: entry.item.id,
+                        product_code: entry.item.product_code,
+                        size: entry.item.size,
+                        color: entry.item.color,
+                        created_at: entry.item.created_at,
+                        updated_at: entry.item.updated_at,
+                        tag: CatalogTagSummaryDto {
+                            tag_id: entry.tag.id,
+                            tag_uid: entry.tag.tag_uid,
+                            mode: entry.tag.mode.to_string(),
+                            status: entry.tag.status.to_string(),
+                            key_version: entry.tag.key_version,
+                            last_counter: entry.tag.last_counter,
+                        },
+                    })
+                    .collect::<Vec<_>>(),
+            ),
+        )
+            .into_response(),
+        Err(error) => map_app_error(error),
+    }
+}
+
+pub async fn list_catalog_tags(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> impl IntoResponse {
+    if let Err(error) = require_admin(&headers, &state.admin_key) {
+        return map_app_error(error);
+    }
+
+    match state.list_catalog_tags_usecase.execute().await {
+        Ok(tags) => (
+            StatusCode::OK,
+            Json(
+                tags.into_iter()
+                    .map(|entry| CatalogTagDto {
+                        tag_id: entry.tag.id,
+                        tag_uid: entry.tag.tag_uid,
+                        mode: entry.tag.mode.to_string(),
+                        status: entry.tag.status.to_string(),
+                        key_version: entry.tag.key_version,
+                        last_counter: entry.tag.last_counter,
+                        created_at: entry.tag.created_at,
+                        updated_at: entry.tag.updated_at,
+                        item: entry.item.map(|item| CatalogItemSummaryDto {
+                            item_id: item.id,
+                            product_code: item.product_code,
+                            size: item.size,
+                            color: item.color,
+                        }),
+                    })
+                    .collect::<Vec<_>>(),
+            ),
         )
             .into_response(),
         Err(error) => map_app_error(error),
