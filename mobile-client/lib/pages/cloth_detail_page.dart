@@ -61,7 +61,7 @@ class _ClothDetailPageState extends State<ClothDetailPage> {
     final isT002 = (widget.cloth.name.trim() == 'T.002');
     if (!isT002) return;
 
-    const url = 'ws://10.213.255.72:81';
+    const url = 'ws://10.247.101.57:81';
     Esp32MovementService.instance.connect(url);
 
     _sensorSub = Esp32MovementService.instance.stream.listen(
@@ -534,6 +534,27 @@ class _TriplePainter extends CustomPainter {
     final minY = mode == _ChartMode.acc ? -2.0 : -250.0;
     final maxY = mode == _ChartMode.acc ? 2.0 : 250.0;
 
+    const textStyle = TextStyle(fontSize: 10, color: Colors.black54);
+
+    final tpMax = TextPainter(
+      text: TextSpan(text: maxY.toStringAsFixed(0), style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final tpZero = TextPainter(
+      text: const TextSpan(text: '0', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final tpMin = TextPainter(
+      text: TextSpan(text: minY.toStringAsFixed(0), style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    tpMax.paint(canvas, const Offset(6, 4));
+    tpZero.paint(canvas, Offset(6, size.height / 2 - tpZero.height / 2));
+    tpMin.paint(canvas, Offset(6, size.height - tpMin.height - 4));
+
     void draw(List<double> data, int color) {
       if (data.length < 2) return;
 
@@ -596,6 +617,27 @@ class _SinglePainter extends CustomPainter {
 
     const minY = 0.0;
     const maxY = 3.0;
+
+    const textStyle = TextStyle(fontSize: 10, color: Colors.black54);
+
+    final tp3 = TextPainter(
+      text: const TextSpan(text: '3', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final tp1 = TextPainter(
+      text: const TextSpan(text: '1', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final tp0 = TextPainter(
+      text: const TextSpan(text: '0', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    tp3.paint(canvas, const Offset(6, 4));
+    tp1.paint(canvas, Offset(6, size.height * (1 - (1 / 3)) - tp1.height / 2));
+    tp0.paint(canvas, Offset(6, size.height - tp0.height - 4));
 
     final paint = Paint()
       ..color = const Color(0xFF6A1B9A)

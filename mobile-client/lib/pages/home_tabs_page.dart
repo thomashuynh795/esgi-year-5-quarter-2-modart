@@ -48,8 +48,15 @@ class _HomeTabsPageState extends State<HomeTabsPage>
   @override
   void initState() {
     super.initState();
-    Esp32SocketService.instance.connect('ws://10.213.38.168:81');
-    // Esp32MovementService.instance.connect('ws://10.213.255.72:81');
+    Esp32SocketService.instance.connect('ws://10.247.101.49:82');
+    Esp32SocketService.instance.stream.listen(
+      (data) {
+        debugPrint('TEMP/HUM reçu: T=${data.temperature} H=${data.humidity}');
+      },
+      onError: (e) {
+        debugPrint('TEMP/HUM erreur: $e');
+      },
+    );
     WidgetsBinding.instance.addObserver(this);
     _clothesFuture = _service.loadClothes();
 
