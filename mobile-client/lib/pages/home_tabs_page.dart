@@ -14,7 +14,6 @@ import '../services/nfc_scan.dart';
 import '../services/pending_scans.dart';
 import 'cloth_detail_page.dart';
 import '../services/esp32_socket_service.dart';
-import '../services/esp32_movement_service.dart';
 import '../services/token_storage.dart';
 
 class HomeTabsPage extends StatefulWidget {
@@ -239,6 +238,7 @@ class _HomeTabsPageState extends State<HomeTabsPage>
             cloth: cloth,
             showShopLink: false,
             canDelete: fromLibrary,
+            enableLiveGraphs: fromLibrary,
             onDelete: fromLibrary
                 ? (id) async {
                     await _libraryApi.removeFromLibrary(id);
@@ -884,6 +884,7 @@ class _ClothTile extends StatelessWidget {
               cloth: cloth,
               showShopLink: showShopLink,
               canDelete: onDeleteFromLibrary != null,
+              enableLiveGraphs: onDeleteFromLibrary != null,
               onDelete: onDeleteFromLibrary,
             ),
           ),

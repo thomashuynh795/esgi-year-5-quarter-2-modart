@@ -30,13 +30,20 @@ class Esp32MovementService {
   WebSocketChannel? _channel;
   StreamSubscription? _sub;
 
+  String? _currentUrl;
+  bool _connected = false;
+
   final _controller = StreamController<SensorDataMovement>.broadcast();
   Stream<SensorDataMovement> get stream => _controller.stream;
 
-  bool get isConnected => _channel != null;
+  bool get isConnected => _connected;
 
-  void connect(String url) {
-    if (_channel != null) return;
+  Future<void> connect(String url) async {
+    if (_channel != null && _currentUrl == url) return;
+
+    await disconnect();
+
+    _currentUrl = url;
 
     try {
       _channel = WebSocketChannel.connect(Uri.parse(url));
@@ -45,6 +52,7 @@ class Esp32MovementService {
         (event) {
           try {
             final data = jsonDecode(event.toString());
+
             final ax = (data['ax'] as num).toDouble();
             final ay = (data['ay'] as num).toDouble();
             final az = (data['az'] as num).toDouble();
@@ -52,6 +60,8 @@ class Esp32MovementService {
             final gx = (data['gx'] as num).toDouble();
             final gy = (data['gy'] as num).toDouble();
             final gz = (data['gz'] as num).toDouble();
+
+            _connected = true;
 
             _controller.add(
               SensorDataMovement(
@@ -64,25 +74,36 @@ class Esp32MovementService {
                 gz: gz,
               ),
             );
-          } catch (e) {}
+          } catch (_) {}
         },
-        onError: (e) async {
+        onError: (_) async {
+          _connected = false;
           await disconnect();
         },
         onDone: () async {
+          _connected = false;
           await disconnect();
         },
         cancelOnError: true,
       );
-    } catch (e) {
+    } catch (_) {
+      _connected = false;
       _channel = null;
+      _sub = null;
     }
   }
 
   Future<void> disconnect() async {
-    await _sub?.cancel();
+    _connected = false;
+
+    try {
+      await _sub?.cancel();
+    } catch (_) {}
     _sub = null;
-    await _channel?.sink.close();
+
+    try {
+      await _channel?.sink.close();
+    } catch (_) {}
     _channel = null;
   }
 }
