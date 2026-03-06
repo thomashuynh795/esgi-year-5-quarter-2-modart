@@ -12,10 +12,16 @@ import { AdminReconfigureComponent } from './features/admin-reconfigure/admin-re
 import { AdminGenerateScanTokensComponent } from './features/admin-generate-scan-tokens/admin-generate-scan-tokens.component';
 import { AdminRevokeScanTokenComponent } from './features/admin-revoke-scan-token/admin-revoke-scan-token.component';
 import { SettingsComponent } from './features/settings/settings.component';
+import { TutorialOverviewComponent } from './features/tutorial/tutorial-overview.component';
+import { TutorialStepComponent } from './features/tutorial/tutorial-step.component';
+import { TutorialFaqComponent } from './features/tutorial/tutorial-faq.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'dashboard', component: DashboardComponent },
+  { path: 'tutorial', component: TutorialOverviewComponent },
+  { path: 'tutorial/step/:id', component: TutorialStepComponent },
+  { path: 'tutorial/faq', component: TutorialFaqComponent },
   { path: 'public/health', component: PublicHealthComponent },
   { path: 'public/verify', component: PublicVerifyComponent },
   { path: 'public/scan', component: PublicScanComponent },

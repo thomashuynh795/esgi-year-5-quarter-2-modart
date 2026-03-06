@@ -23,7 +23,10 @@ export class App {
   protected readonly navSections = [
     {
       label: 'Overview',
-      links: [{ label: 'Control Center', path: '/dashboard' }],
+      links: [
+        { label: 'Control Center', path: '/dashboard' },
+        { label: 'Guide de demo', path: '/tutorial' },
+      ],
     },
     {
       label: 'Customer Flows',
