@@ -1,3 +1,4 @@
+use crate::app::admin as admin_handlers;
 use crate::modules::scan_tokens::application::scan_tokens::{
     ConsumeScanTokenUseCase, GenerateScanTokensUseCase,
 };
@@ -13,12 +14,15 @@ use axum::{
     Router,
     routing::{get, post},
 };
+use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 
 pub struct AppState {
     pub api_base_url: String,
     pub admin_key: String,
+    pub db_wipe_token: Option<String>,
+    pub database_connection: Option<Arc<DatabaseConnection>>,
     pub enroll_usecase: Arc<EnrollTagUseCase>,
     pub verify_usecase: Arc<VerifyTagUseCase>,
     pub revoke_usecase: Arc<RevokeTagUseCase>,
@@ -36,6 +40,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/health", get(health_check))
         .route("/provision", post(tag_handlers::provision_tag))
+        .route("/admin/database/wipe", post(admin_handlers::wipe_database))
         .route("/admin/tags/enroll", post(tag_handlers::enroll_tag))
         .route("/admin/items", get(tag_handlers::list_catalog_items))
         .route("/admin/tags", get(tag_handlers::list_catalog_tags))

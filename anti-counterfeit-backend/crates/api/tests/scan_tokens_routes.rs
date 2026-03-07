@@ -292,6 +292,8 @@ async fn build_app() -> TestHarness {
     let state = Arc::new(AppState {
         api_base_url: "https://api.example.com".to_string(),
         admin_key: "admin-secret".to_string(),
+        db_wipe_token: Some("wipe-secret".to_string()),
+        database_connection: None,
         enroll_usecase: enroll_usecase.clone(),
         verify_usecase: Arc::new(VerifyTagUseCase::new(
             tag_repo.clone(),
@@ -335,6 +337,41 @@ async fn build_app() -> TestHarness {
     TestHarness {
         app: create_router(state),
     }
+}
+
+#[tokio::test]
+async fn wipe_database_route_requires_bearer_token() {
+    let harness = build_app().await;
+
+    let response = harness
+        .app
+        .oneshot(
+            Request::post("/admin/database/wipe")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn wipe_database_route_returns_service_unavailable_without_db_connection() {
+    let harness = build_app().await;
+
+    let response = harness
+        .app
+        .oneshot(
+            Request::post("/admin/database/wipe")
+                .header("authorization", "Bearer wipe-secret")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
 }
 
 async fn seed_product(item_repo: Arc<InMemoryItemRepository>) {

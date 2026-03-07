@@ -6,6 +6,7 @@ pub struct Config {
     pub api_domain: String,
     pub token_secret: String,
     pub admin_key: String,
+    pub db_wipe_token: Option<String>,
     pub tag_signing_master: String,
     pub default_scan_token_batch_size: u32,
     pub default_scan_token_ttl_seconds: i64,
@@ -13,10 +14,10 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
-        let address = std::env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:8101".into());
+        let address = std::env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:8080".into());
         let database_url =
             std::env::var("DATABASE_URL").context("DATABASE_URL is required in the root .env")?;
-        let api_domain = std::env::var("API_DOMAIN").unwrap_or_else(|_| "localhost:8101".into());
+        let api_domain = std::env::var("API_DOMAIN").unwrap_or_else(|_| "localhost:8080".into());
         let token_secret = std::env::var("TOKEN_SECRET")
             .or_else(|_| std::env::var("HMAC_SECRET"))
             .or_else(|_| std::env::var("SCAN_TOKEN_SECRET"))
@@ -26,6 +27,9 @@ impl Config {
         let admin_key = std::env::var("ADMIN_KEY")
             .or_else(|_| std::env::var("ADMIN_API_KEY"))
             .context("ADMIN_KEY is required in the root .env")?;
+        let db_wipe_token = std::env::var("DB_WIPE_TOKEN")
+            .or_else(|_| std::env::var("WIPE_DB_TOKEN"))
+            .ok();
         let tag_signing_master = std::env::var("TAG_SIGNING_MASTER")
             .or_else(|_| std::env::var("MASTER_KEY_HEX"))
             .context("TAG_SIGNING_MASTER is required in the root .env")?;
@@ -44,6 +48,7 @@ impl Config {
             api_domain,
             token_secret,
             admin_key,
+            db_wipe_token,
             tag_signing_master,
             default_scan_token_batch_size,
             default_scan_token_ttl_seconds,

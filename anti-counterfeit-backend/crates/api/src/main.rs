@@ -141,6 +141,8 @@ async fn main() -> Result<()> {
     let state = Arc::new(app::http::AppState {
         api_base_url: config.scan_base_url(),
         admin_key: config.admin_key.clone(),
+        db_wipe_token: config.db_wipe_token.clone(),
+        database_connection: Some(shared_database_connexion.clone()),
         enroll_usecase,
         verify_usecase,
         revoke_usecase,

@@ -44,3 +44,17 @@ pub fn require_admin(headers: &HeaderMap, expected_api_key: &str) -> Result<(), 
         Err(AppError::Unauthorized)
     }
 }
+
+pub fn require_bearer_token(headers: &HeaderMap, expected_token: &str) -> Result<(), AppError> {
+    let provided_token = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .ok_or(AppError::Unauthorized)?;
+
+    if provided_token == expected_token {
+        Ok(())
+    } else {
+        Err(AppError::Unauthorized)
+    }
+}
